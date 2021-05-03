@@ -5,6 +5,7 @@ class Person(models.Model):
     vunetid = models.CharField(max_length=6)
     firstname = models.CharField(max_length=30)
     lastname = models.CharField(max_length=30)
+    email = models.CharField(max_length=50, blank=True)
     orcid = models.CharField(max_length=19, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
