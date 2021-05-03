@@ -88,6 +88,7 @@ class VaultDataset(models.Model):
 
 class Publications(models.Model):
     vault_dataset = models.ForeignKey(VaultDataset, on_delete=models.CASCADE, blank=True, null=True)
+    doi = models.CharField(max_length=255, blank=True, null=True)
     yoda_id = models.CharField(max_length=30)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
