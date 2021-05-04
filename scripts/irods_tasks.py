@@ -47,9 +47,9 @@ def get_sizes(data):
         for path in data:
             print(path)
             query=session.query(DataObject.size).filter(Like(Collection.name, f'/{SURF_PRE["zone"]}/home/{path}%')).count(DataObject.id).sum(DataObject.size)
-            for result in query:
-                data[path]['size']=result[DataObject.size]
-                data[path]['count']=result[DataObject.id]
+            result=next(iter(query)) # only one result
+            data[path]['size']=result[DataObject.size]
+            data[path]['count']=result[DataObject.id]
     return data
 logger=setup_logging()
 
