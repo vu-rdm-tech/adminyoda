@@ -64,24 +64,28 @@ def get_sizes(session, data):
         data['collections'][path]['count'] = result[DataObject.id]
     return data
 
+
 def get_datasets(session, data):
     for path in data['collections']:
         if path.startswith('vault-'):
             data['collections'][path]['datasets'] = {}
             coll = session.collections.get(f'/{SURF_PRE["zone"]}/home/{path}')
-            for col in coll.subcollections: # datasets
-                dataset=col.name
+            for col in coll.subcollections:  # datasets
+                dataset = col.name
                 data['collections'][path]['datasets'][dataset] = {}
-                query = session.query(DataObject.size).filter(Like(Collection.name, f'/{SURF_PRE["zone"]}/home/{path}/{dataset}%')).count(
+                query = session.query(DataObject.size).filter(
+                    Like(Collection.name, f'/{SURF_PRE["zone"]}/home/{path}/{dataset}%')).count(
                     DataObject.id).sum(DataObject.size)
                 result = next(iter(query))  # only one result
-                data['collections'][path]['datasets'][dataset]['size']=result[DataObject.size]
-                data['collections'][path]['datasets'][dataset]['count']=result[DataObject.id]
+                data['collections'][path]['datasets'][dataset]['size'] = result[DataObject.size]
+                data['collections'][path]['datasets'][dataset]['count'] = result[DataObject.id]
                 status = col.metadata.get_one('org_vault_status').value
-                data['collections'][path]['datasets'][dataset]['status']=status
+                data['collections'][path]['datasets'][dataset]['status'] = status
                 if status in ['PUBLISHED', 'DEPUBLISHED']:
-                    data['collections'][path]['datasets'][dataset]['landingPageUrl']=col.metadata.get_one('org_publication_landingPageUrl').value
+                    data['collections'][path]['datasets'][dataset]['landingPageUrl'] = col.metadata.get_one(
+                        'org_publication_landingPageUrl').value
     return data
+
 
 logger = setup_logging()
 statsfile = f'collections-{today_str}.json'
