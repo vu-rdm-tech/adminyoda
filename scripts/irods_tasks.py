@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime
 import json
-from irodsdata import irodsdata
+from irodsdata import IrodsData
 
 today = datetime.now()
 today_str = today.strftime('%Y%m%d')
@@ -20,7 +20,7 @@ def setup_logging():
 
 logger = setup_logging()
 statsfile = f'collections-{today_str}.json'
-irodsdata = irodsdata()
+irodsdata = IrodsData()
 irodsdata.logger=logger
 if not os.path.exists(statsfile):
     data=irodsdata.collect()

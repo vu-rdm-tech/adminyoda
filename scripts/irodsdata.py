@@ -6,7 +6,7 @@ from irods.session import iRODSSession
 from config import YODATEST, AIMMS, SURF, SURF_PRE, MAIL_TO, MAIL_FROM, SMTP_HOST
 
 
-class irodsdata():
+class IrodsData():
     def __init__(self):
         self.data = {'collections': {}, 'groups': []}
         self.session = self._get_session()
