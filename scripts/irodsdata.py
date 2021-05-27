@@ -3,8 +3,15 @@ import ssl
 from irods.column import Like
 from irods.models import Collection, DataObject
 from irods.session import iRODSSession
+import irods.exception
 from config import YODATEST, AIMMS, SURF, SURF_PRE, MAIL_TO, MAIL_FROM, SMTP_HOST
+import logging
 
+logger = logging.getLogger('irods_tasks')
+
+def handle_exception():
+    logger.warning('script failed with an error')
+    raise SystemExit(0)
 
 class IrodsData():
     def __init__(self):
@@ -12,11 +19,15 @@ class IrodsData():
         self.session = self._get_session()
 
     def collect(self):
-        self.data['collections'] = self.get_home_collections()
-        self.data['groups'] = self.get_research_groups()
-        for path in self.data['collections']:
-            self.data['collections'][path] = self.get_stats(path=path)
-        return self.data
+        try:
+            self.data['collections'] = self.get_home_collections()
+            self.data['groups'] = self.get_research_groups()
+            for path in self.data['collections']:
+                self.data['collections'][path] = self.get_stats(path=path)
+            return self.data
+        except:
+            logger.error('could not get collections and groups, probably an authentication error')
+            handle_exception()
 
     def _get_session(self):
         try:
@@ -47,7 +58,7 @@ class IrodsData():
         return groups
 
     def query_collection_stats(self, full_path):
-        query = self.session.query(DataObject.size).filter(Like(Collection.name, full_path)).count(
+        query = self.session.query(DataObject.size).filter(Like(Collection.name, f'{full_path}%')).count(
             DataObject.id).sum(DataObject.size)
         result = next(iter(query))  # only one result
         return result[DataObject.size], result[DataObject.id]

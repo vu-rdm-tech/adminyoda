@@ -15,15 +15,15 @@ class Person(models.Model):
 
 
 class Department(models.Model):
-    name = models.CharField(max_length=255)
-    abbreviation = models.CharField(max_length=255)
-    faculty = models.CharField(max_length=255)
-    institute = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, blank=True)
+    abbreviation = models.CharField(max_length=255, blank=True)
+    faculty = models.CharField(max_length=255, blank=True)
+    institute = models.CharField(max_length=255, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'{self.faculty} - {self.institute} - {self.name}'
+        return f'{self.faculty} {self.institute} {self.name}'
 
 class Budget(models.Model):
     CODE_TYPES = (
@@ -77,22 +77,19 @@ class VaultFolder(models.Model):
     updated = models.DateTimeField(auto_now=True)
     deleted = models.DateTimeField(blank=True, null=True)  # just in case
 
+    def __str__(self):
+        return self.yoda_name
 
 class VaultDataset(models.Model):
     yoda_name = models.CharField(max_length=255)
-    vault_folder = models.ForeignKey(ResearchFolder, on_delete=models.CASCADE)
+    vault_folder = models.ForeignKey(VaultFolder, on_delete=models.CASCADE)
+    status = models.CharField(max_length=30, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     deleted = models.DateTimeField(blank=True, null=True)  # just in case
 
-
-class Publications(models.Model):
-    vault_dataset = models.ForeignKey(VaultDataset, on_delete=models.CASCADE, blank=True, null=True)
-    doi = models.CharField(max_length=255, blank=True, null=True)
-    yoda_id = models.CharField(max_length=30)
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-    deleted = models.DateTimeField(blank=True, null=True)  # just in case
+    def __str__(self):
+        return self.yoda_name
 
 
 class Datamanager(models.Model):
@@ -103,10 +100,12 @@ class Datamanager(models.Model):
 class ResearchStats(models.Model):
     research_folder = models.ForeignKey(ResearchFolder, on_delete=models.SET_NULL, blank=True, null=True)
     size = models.BigIntegerField()
+    collected = models.DateField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
 
 
 class VaultStats(models.Model):
-    research_folder = models.ForeignKey(VaultFolder, on_delete=models.CASCADE)
+    vault_folder = models.ForeignKey(VaultFolder, on_delete=models.CASCADE)
     size = models.BigIntegerField()
+    collected = models.DateField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)

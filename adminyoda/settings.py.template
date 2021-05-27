@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-einr!70!8ymqxqf^y01%jgtqqk5&@lb*$a)u0!fv&0)3&u5_w2'
+SECRET_KEY = '******'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -81,8 +82,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'adminyoda',
-        'USER': 'django',
-        'PASSWORD': 'A2BCPPtsigYLhJ'
+        'USER': '******',
+        'PASSWORD': '******'
     }
 }
 
@@ -129,3 +130,9 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+Q_CLUSTER = {
+    "name": "yodastats",
+    "orm": "default",  # Use Django's ORM + database for broker
+    'timeout': 60,
+}
