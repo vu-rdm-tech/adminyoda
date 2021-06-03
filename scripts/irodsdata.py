@@ -21,17 +21,21 @@ class IrodsData():
         self.session = self._get_session()
 
     def collect(self):
-        self.data['collections'] = self.get_home_collections()
-        self.data['groups'] = self.get_groups()
-        total_size = 0
-        for path in self.data['collections']:
-            self.data['collections'][path] = self.get_stats(path=path)
-            if not self.data['collections'][path]['size'] is None:
-                total_size = total_size + self.data['collections'][path]['size']
-        self.data['misc'] = {}
-        self.data['misc']['size_total'] = total_size
-        self.data['misc']['users_total'] = self.get_user_count()
-        self.data['misc']['revision_size'] = self.get_revision_size()
+        try:
+            self.data['collections'] = self.get_home_collections()
+            self.data['groups'] = self.get_groups()
+            total_size = 0
+            for path in self.data['collections']:
+                self.data['collections'][path] = self.get_stats(path=path)
+                if not self.data['collections'][path]['size'] is None:
+                    total_size = total_size + self.data['collections'][path]['size']
+            self.data['misc'] = {}
+            self.data['misc']['size_total'] = total_size
+            self.data['misc']['users_total'] = self.get_user_count()
+            self.data['misc']['revision_size'] = self.get_revision_size()
+        except:
+            logger.error('could not get collections and groups, probably an authentication error')
+            handle_exception()
         return self.data
 
     def _get_session(self):
