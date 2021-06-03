@@ -3,8 +3,8 @@ from django.db import models
 
 class Person(models.Model):
     vunetid = models.CharField(max_length=6)
-    firstname = models.CharField(max_length=30)
-    lastname = models.CharField(max_length=30)
+    firstname = models.CharField(max_length=30, blank=True)
+    lastname = models.CharField(max_length=30, blank=True)
     email = models.CharField(max_length=50, blank=True)
     orcid = models.CharField(max_length=19, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -93,8 +93,11 @@ class VaultDataset(models.Model):
 
 
 class Datamanager(models.Model):
+    yoda_name = models.CharField(max_length=255)
     category = models.CharField(max_length=255)
-    vunetid = models.CharField(max_length=6)
+    user = models.ForeignKey(Person, on_delete=models.SET_NULL, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
 
 class ResearchStats(models.Model):
@@ -107,5 +110,12 @@ class ResearchStats(models.Model):
 class VaultStats(models.Model):
     vault_folder = models.ForeignKey(VaultFolder, on_delete=models.CASCADE)
     size = models.BigIntegerField()
+    collected = models.DateField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+class MiscStats(models.Model):
+    size_total = models.BigIntegerField()
+    users_total = models.IntegerField()
+    revisions_size = models.BigIntegerField
     collected = models.DateField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)

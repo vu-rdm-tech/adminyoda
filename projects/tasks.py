@@ -3,10 +3,12 @@ import os
 import shutil
 from datetime import datetime
 import logging
-from projects.models import ResearchFolder, VaultFolder, VaultDataset, VaultStats, ResearchStats
+from projects.models import ResearchFolder, VaultFolder, VaultDataset, VaultStats, ResearchStats, Person, Datamanager, \
+    MiscStats
 
 DATADIR = '/home/peter/adminyoda/scripts/data'
 logger = logging.getLogger(__name__)
+
 
 def process_irods_stats():
     files = sorted(os.listdir(DATADIR))
@@ -20,6 +22,11 @@ def process_irods_stats():
             filedate = datetime.strptime(filedate_str, '%Y%m%d').date()
             with open(f'{DATADIR}/{file}', 'r') as fp:
                 data = json.load(fp)
+                MiscStats.objects.update_or_create(collected=filedate, defaults={
+                    'size_total': data['misc']['size_total'],
+                    'users_total': data['misc']['users_total'],
+                    'revision_size': data['misc']['revision_size'],
+                })
                 for group in data['groups']:
                     if group.startswith('research-'):
                         logger.info(f'processing group {group} in {file}')
@@ -49,9 +56,15 @@ def process_irods_stats():
                             research_folder=researchfolder,
                             collected=filedate,
                             defaults={'size': researchsize})
+                    elif group.startswith('datamanager-'):
+                        logger.info(f'processing datamanager group {group} in {file}')
+                        for m in data['groups'][group]['members']:
+                            if len(m) == 6:
+                                u, created = Person.objects.get_or_create(vunetid=m)
+                                u.save()
+                                d, created = Datamanager.objects.get_or_create(user=u, yoda_name=group)
+                                d.category = data['groups'][group]['category']
+                                d.save()
             logger.info(f'move {file} to archived')
-            shutil.move(f'{DATADIR}/{file}', f'{DATADIR}/archived')
+            shutil.move(f'{DATADIR}/{file}', f'{DATADIR}/archived/{file}')
     logger.info(f'{cnt} files processed')
-
-
-

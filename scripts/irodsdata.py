@@ -9,9 +9,11 @@ import logging
 
 logger = logging.getLogger('irods_tasks')
 
+
 def handle_exception():
     logger.warning('script failed with an error')
     raise SystemExit(0)
+
 
 class IrodsData():
     def __init__(self):
@@ -19,15 +21,18 @@ class IrodsData():
         self.session = self._get_session()
 
     def collect(self):
-        try:
-            self.data['collections'] = self.get_home_collections()
-            self.data['groups'] = self.get_research_groups()
-            for path in self.data['collections']:
-                self.data['collections'][path] = self.get_stats(path=path)
-            return self.data
-        except:
-            logger.error('could not get collections and groups, probably an authentication error')
-            handle_exception()
+        self.data['collections'] = self.get_home_collections()
+        self.data['groups'] = self.get_groups()
+        total_size = 0
+        for path in self.data['collections']:
+            self.data['collections'][path] = self.get_stats(path=path)
+            if not self.data['collections'][path]['size'] is None:
+                total_size = total_size + self.data['collections'][path]['size']
+        self.data['misc'] = {}
+        self.data['misc']['size_total'] = total_size
+        self.data['misc']['users_total'] = self.get_user_count()
+        self.data['misc']['revision_size'] = self.get_revision_size()
+        return self.data
 
     def _get_session(self):
         try:
@@ -45,7 +50,14 @@ class IrodsData():
             collections[col.name] = {}
         return collections
 
-    def get_research_groups(self):
+    def get_user_count(self):
+        return len(self.session.user_groups.get('public').members)
+
+    def get_revision_size(self):
+        size, cnt = self.query_collection_stats(f'/{SURF_PRE["zone"]}/yoda/revisions')
+        return size
+
+    def get_groups(self):
         groups = {}
         for path in self.data['collections']:
             if path.startswith('research-') or path.startswith('datamanager-'):
