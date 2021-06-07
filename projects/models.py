@@ -116,6 +116,6 @@ class VaultStats(models.Model):
 class MiscStats(models.Model):
     size_total = models.BigIntegerField()
     users_total = models.IntegerField()
-    revisions_size = models.BigIntegerField
+    revision_size = models.BigIntegerField()
     collected = models.DateField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
