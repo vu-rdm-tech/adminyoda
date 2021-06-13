@@ -52,6 +52,7 @@ def process_irods_stats():
                             vault_folder=vaultfolder,
                             collected=filedate,
                             defaults={'size': vaultsize})
+                        print(f'{group} | {filedate} | {researchfolder.id} | {researchfolder.yoda_name}')
                         ResearchStats.objects.update_or_create(
                             research_folder=researchfolder,
                             collected=filedate,
@@ -68,3 +69,5 @@ def process_irods_stats():
             logger.info(f'move {file} to archived')
             shutil.move(f'{DATADIR}/{file}', f'{DATADIR}/archived/{file}')
     logger.info(f'{cnt} files processed')
+
+process_irods_stats()
