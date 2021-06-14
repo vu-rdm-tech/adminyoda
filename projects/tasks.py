@@ -22,16 +22,13 @@ def process_irods_stats():
             filedate = datetime.strptime(filedate_str, '%Y%m%d').date()
             with open(f'{DATADIR}/{file}', 'r') as fp:
                 data = json.load(fp)
-                MiscStats.objects.update_or_create(collected=filedate, defaults={
-                    'size_total': data['misc']['size_total'],
-                    'users_total': data['misc']['users_total'],
-                    'internal_users_total': data['misc']['internal_users_total'],
-                    'external_users_total': data['misc']['external_users_total'],
-                    'revision_size': data['misc']['revision_size'],
-                })
+                researchgroup_cnt = 0
+                dataset_cnt = 0
+                published_cnt = 0
                 for group in data['groups']:
                     if group.startswith('research-'):
                         logger.info(f'processing group {group} in {file}')
+                        researchgroup_cnt += 1
                         researchfolder, created = ResearchFolder.objects.get_or_create(yoda_name=group)
                         researchfolder.category = data['groups'][group]['category']
                         researchfolder.save()
@@ -40,9 +37,12 @@ def process_irods_stats():
                             vaultfolder.yoda_name = researchfolder.yoda_name.replace('research-', 'vault-', 1)
                             vaultfolder.save()
                         for set in data['collections'][vaultfolder.yoda_name]['datasets']:
+                            dataset_cnt += 1
                             dataset, created = VaultDataset.objects.get_or_create(yoda_name=set,
                                                                                   vault_folder=vaultfolder)
                             dataset.status = data['collections'][vaultfolder.yoda_name]['datasets'][set]['status']
+                            if dataset.status == 'PUBLISHED':
+                                published_cnt += 1
                             dataset.save()
                         vaultsize = data['collections'][vaultfolder.yoda_name]['size']
                         if vaultsize is None:
@@ -68,6 +68,16 @@ def process_irods_stats():
                                 d, created = Datamanager.objects.get_or_create(user=u, yoda_name=group)
                                 d.category = data['groups'][group]['category']
                                 d.save()
+                MiscStats.objects.update_or_create(collected=filedate, defaults={
+                    'size_total': data['misc']['size_total'],
+                    'users_total': data['misc']['users_total'],
+                    'internal_users_total': data['misc']['internal_users_total'],
+                    'external_users_total': data['misc']['external_users_total'],
+                    'revision_size': data['misc']['revision_size'],
+                    'groups_total': researchgroup_cnt,
+                    'datasets_total': dataset_cnt,
+                    'published_total': published_cnt,
+                })
             logger.info(f'move {file} to archived')
             shutil.move(f'{DATADIR}/{file}', f'{DATADIR}/archived/{file}')
     logger.info(f'{cnt} files processed')
