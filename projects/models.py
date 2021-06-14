@@ -116,6 +116,9 @@ class VaultStats(models.Model):
 class MiscStats(models.Model):
     size_total = models.BigIntegerField()
     users_total = models.IntegerField()
+    internal_users_total = models.IntegerField()
+    external_users_total = models.IntegerField()
+    projects_total = models.IntegerField(default=6)
     revision_size = models.BigIntegerField()
     collected = models.DateField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)

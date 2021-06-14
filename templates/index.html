@@ -4,100 +4,79 @@
     <h1>Yoda project admin</h1>
     <p>Current Yoda stats:</p>
     <ul class="list-group col-md-4">
-        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="{% url 'projects_index' %}"><strong>Projects:</strong> {{ num_projects }}</a>
-        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Groups:</strong> {{ num_groups }}</li>
-        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Users:</strong> {{ num_users }}</li>
-        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Archived datasets:</strong> {{ num_datasets }}</li>
-        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Published datasets:</strong> {{ num_published }}</li>
-        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Total Size:</strong> {{ total_size }}</li>
+        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+           href="{% url 'projects_index' %}"><strong>Projects:</strong> {{ num_projects }}</a>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>Groups:</strong> {{ num_groups }}</li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>Users:</strong> {{ num_users }}</li>
+        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Archived
+            datasets:</strong> {{ num_datasets }}</li>
+        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Published
+            datasets:</strong> {{ num_published }}</li>
+        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Total
+            Size:</strong> {{ total_size }}</li>
     </ul>
 
+    <canvas id="project-chart" data-url="{% url 'project_chart_json' %}"></canvas>
+    <hr />
     <canvas id="size-chart" data-url="{% url 'size_chart_json' %}"></canvas>
+    <hr />
     <canvas id="user-chart" data-url="{% url 'user_chart_json' %}"></canvas>
+    <hr />
     <p></p>
     <i><strong>Last updated:</strong> {{ last_updated }}</i>
     <script>
 
+        function setBarChart(chart, title, stacked){
+            $.ajax({
+                url: chart.data("url"),
+                success: function (data) {
+
+                    var ctx = chart[0].getContext("2d");
+
+                    var options = {
+                        responsive: true,
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: title
+                        },
+                        scales:
+                            {
+                                yAxes: [{
+                                    ticks:
+                                        {
+                                            beginAtZero: true
+                                        },
+                                    stacked: true
+                                }],
+                                xAxes: [{
+                                    stacked: true
+                                }]
+                            }
+
+                    }
+
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: data.datasets
+                        },
+                        options: options
+                    });
+
+                }
+            });
+        }
+
         $(function () {
-
-            var $sizeChart = $("#size-chart");
-            $.ajax({
-                url: $sizeChart.data("url"),
-                success: function (data) {
-
-                    var ctx = $sizeChart[0].getContext("2d");
-
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: data.labels,
-                            datasets: [{
-                                label: 'Total size (GB)',
-                                fill: false,
-                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                                borderColor: 'rgba(255, 99, 132)',
-                                borderWidth: 1,
-                                data: data.data
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            legend: {
-                                position: 'top',
-                            },
-                            title: {
-                                display: true,
-                                text: 'Total size'
-                            },
-                            scales:
-                                {
-                                    yAxes:
-                                        [{"ticks": {"beginAtZero": true}}]
-                                }
-                        }
-                    });
-
-                }
-            });
-            var $userChart = $("#user-chart");
-            $.ajax({
-                url: $userChart.data("url"),
-                success: function (data) {
-
-                    var ctx = $userChart[0].getContext("2d");
-
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: data.labels,
-                            datasets: [{
-                                label: 'Users',
-                                backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                                borderColor: 'rgba(255, 159, 64)',
-                                borderWidth: 1,
-                                data: data.data
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            legend: {
-                                position: 'top',
-                            },
-                            title: {
-                                display: true,
-                                text: 'Users'
-                            },
-                            scales:
-                                {
-                                    yAxes:
-                                        [{"ticks": {"beginAtZero": true}}]
-                                }
-                        }
-                    });
-
-                }
-            });
-
+            setBarChart($("#project-chart"), 'Number of projects', false);
+            setBarChart($("#size-chart"), 'Total size', false);
+            setBarChart($("#user-chart"), 'Number of users', true);
         });
 
     </script>

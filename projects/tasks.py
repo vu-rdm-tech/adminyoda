@@ -25,6 +25,8 @@ def process_irods_stats():
                 MiscStats.objects.update_or_create(collected=filedate, defaults={
                     'size_total': data['misc']['size_total'],
                     'users_total': data['misc']['users_total'],
+                    'internal_users_total': data['misc']['internal_users_total'],
+                    'external_users_total': data['misc']['external_users_total'],
                     'revision_size': data['misc']['revision_size'],
                 })
                 for group in data['groups']:

@@ -31,7 +31,10 @@ class IrodsData():
                     total_size = total_size + self.data['collections'][path]['size']
             self.data['misc'] = {}
             self.data['misc']['size_total'] = total_size
-            self.data['misc']['users_total'] = self.get_user_count()
+            internal, external = self.get_user_count()
+            self.data['misc']['internal_users_total'] = internal
+            self.data['misc']['external_users_total'] = external
+            self.data['misc']['users_total'] = internal + external
             self.data['misc']['revision_size'] = self.get_revision_size()
         except:
             logger.error('could not get collections and groups, probably an authentication error')
@@ -55,7 +58,14 @@ class IrodsData():
         return collections
 
     def get_user_count(self):
-        return len(self.session.user_groups.get('public').members)
+        internal = 0
+        external = 0
+        for user in self.session.user_groups.get('public').members:
+            if ("@" in user.name) and ("@vu.nl" not in user.name):
+                external += 1
+            else:
+                internal += 1
+        return internal, external
 
     def get_revision_size(self):
         size, cnt = self.query_collection_stats(f'/{SURF_PRE["zone"]}/yoda/revisions')
