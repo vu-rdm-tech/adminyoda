@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 from projects.models import Project, MiscStats, VaultDataset, ResearchFolder, Department
 
@@ -25,3 +26,21 @@ def index(request):
         'num_departments': Department.objects.count()
     }
     return render(request, 'index.html', context=context)
+
+def size_chart_json(request):
+    labels=[]
+    data=[]
+    miscstats = MiscStats.objects.all()
+    for s in miscstats:
+        labels.append(s.collected)
+        data.append(s.size_total/(1024*1024*1024))
+    return JsonResponse(data={'labels': labels, 'data': data})
+
+def user_chart_json(request):
+    labels=[]
+    data=[]
+    miscstats = MiscStats.objects.all()
+    for s in miscstats:
+        labels.append(s.collected)
+        data.append(s.users_total)
+    return JsonResponse(data={'labels': labels, 'data': data})

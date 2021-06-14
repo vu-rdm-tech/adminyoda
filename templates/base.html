@@ -8,12 +8,15 @@
     <!-- Add additional CSS in static file -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.10.0.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+
 </head>
 <body>
 <div class="container">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg">
         <a class="navbar-brand" href="https://www.vu.nl">
-            <img src="https://portal.yoda.vu.nl/static/img/headerimg">
+            <img src="https://www.vu.nl/nl/Images/VUlogo_Wit_RGB_mettekst_tcm289-835563.svg">
         </a>
     {% block nav %}
         <ul class="navbar-nav mr-auto">
