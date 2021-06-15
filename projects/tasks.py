@@ -74,6 +74,7 @@ def process_irods_stats():
                     'internal_users_total': data['misc']['internal_users_total'],
                     'external_users_total': data['misc']['external_users_total'],
                     'revision_size': data['misc']['revision_size'],
+                    'trash_size':  data['misc']['trash_size'],
                     'groups_total': researchgroup_cnt,
                     'datasets_total': dataset_cnt,
                     'published_total': published_cnt,

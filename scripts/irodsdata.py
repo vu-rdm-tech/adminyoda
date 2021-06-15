@@ -4,7 +4,7 @@ from irods.column import Like
 from irods.models import Collection, DataObject
 from irods.session import iRODSSession
 import irods.exception
-from config import YODATEST, AIMMS, SURF, SURF_PRE, MAIL_TO, MAIL_FROM, SMTP_HOST
+from config import SURF_PRE
 import logging
 
 logger = logging.getLogger('irods_tasks')
@@ -29,6 +29,7 @@ class IrodsData():
                 self.data['collections'][path] = self.get_stats(path=path)
                 if not self.data['collections'][path]['size'] is None:
                     total_size = total_size + self.data['collections'][path]['size']
+
             self.data['misc'] = {}
             self.data['misc']['size_total'] = total_size
             
@@ -36,7 +37,9 @@ class IrodsData():
             self.data['misc']['internal_public_users_total'] = public_internal
             self.data['misc']['external_public_users_total'] = public_external
             self.data['misc']['public_users_total'] = public_internal + public_external
+
             self.data['misc']['revision_size'] = self.get_revision_size()
+            self.data['misc']['trash_size'] = self.get_trash_size()
             
             research_group_members=[]
             for g in self.data['groups']:
@@ -51,7 +54,7 @@ class IrodsData():
                     internal += 1
             self.data['misc']['internal_users_total'] = internal
             self.data['misc']['external_users_total'] = external
-            self.data['misc']['public_total'] = internal + external
+            self.data['misc']['users_total'] = internal + external
         except:
             logger.error('could not get collections and groups, probably an authentication error')
             handle_exception()
@@ -86,6 +89,10 @@ class IrodsData():
 
     def get_revision_size(self):
         size, cnt = self.query_collection_stats(f'/{SURF_PRE["zone"]}/yoda/revisions')
+        return size
+
+    def get_trash_size(self):
+        size, cnt = self.query_collection_stats(f'/{SURF_PRE["zone"]}/trash')
         return size
 
     def get_groups(self):

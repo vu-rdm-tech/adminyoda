@@ -123,5 +123,6 @@ class MiscStats(models.Model):
     datasets_total = models.IntegerField(default=8)
     published_total = models.IntegerField(default=0)
     revision_size = models.BigIntegerField()
+    trash_size = models.BigIntegerField(default=0)
     collected = models.DateField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)

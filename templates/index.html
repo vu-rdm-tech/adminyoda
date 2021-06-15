@@ -5,30 +5,37 @@
     <p>Current Yoda stats:</p>
     <ul class="list-group col-md-4">
         <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-           href="{% url 'projects_index' %}"><strong>Projects:</strong> {{ num_projects }}</a>
+           href="{% url 'projects_index' %}">
+            <strong>Projects:</strong> {{ num_projects }}
+        </a>
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            <strong>Groups:</strong> {{ num_groups }}</li>
+            <strong>Groups:</strong> {{ num_groups }}
+        </li>
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            <strong>Users:</strong> {{ num_users }}</li>
-        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Archived
-            datasets:</strong> {{ num_datasets }}</li>
-        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Published
-            datasets:</strong> {{ num_published }}</li>
-        <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Total
-            Size:</strong> {{ total_size }}</li>
+            <strong>Users:</strong> {{ num_users }}
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>Archived datasets:</strong> {{ num_datasets }}
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>Published datasets:</strong> {{ num_published }}
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>Total Size:</strong> {{ total_size }}
+        </li>
     </ul>
 
     <canvas id="project-chart" data-url="{% url 'project_chart_json' %}"></canvas>
-    <hr />
+    <hr/>
     <canvas id="size-chart" data-url="{% url 'size_chart_json' %}"></canvas>
-    <hr />
+    <hr/>
     <canvas id="user-chart" data-url="{% url 'user_chart_json' %}"></canvas>
-    <hr />
+    <hr/>
     <p></p>
     <i><strong>Last updated:</strong> {{ last_updated }}</i>
     <script>
 
-        function setBarChart(chart, title, stacked){
+        function setBarChart(chart, title, stacked) {
             $.ajax({
                 url: chart.data("url"),
                 success: function (data) {
@@ -75,7 +82,7 @@
 
         $(function () {
             setBarChart($("#project-chart"), 'Number of projects', false);
-            setBarChart($("#size-chart"), 'Total size', false);
+            setBarChart($("#size-chart"), 'Storage size', false);
             setBarChart($("#user-chart"), 'Number of users', true);
         });
 

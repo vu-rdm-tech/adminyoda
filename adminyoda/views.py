@@ -29,7 +29,6 @@ def index(request):
     }
     return render(request, 'index.html', context=context)
 
-#TODO make DRY
 def size_chart_json(request):
     labels = []
     data = []
