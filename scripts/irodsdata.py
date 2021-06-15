@@ -27,8 +27,7 @@ class IrodsData():
             total_size = 0
             for path in self.data['collections']:
                 self.data['collections'][path] = self.get_stats(path=path)
-                if not self.data['collections'][path]['size'] is None:
-                    total_size = total_size + self.data['collections'][path]['size']
+                total_size = total_size + self.data['collections'][path]['size']
 
             self.data['misc'] = {}
             self.data['misc']['size_total'] = total_size
@@ -116,7 +115,9 @@ class IrodsData():
         query = self.session.query(DataObject.size).filter(Like(Collection.name, f'{full_path}%')).count(
             DataObject.id).sum(DataObject.size)
         result = next(iter(query))  # only one result
-        return result[DataObject.size], result[DataObject.id]
+        size = result[DataObject.size]
+        if size is None: size = 0
+        return size, result[DataObject.id]
 
     def get_stats(self, path):
         stats = {}

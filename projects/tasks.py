@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def process_irods_stats():
+    # don't forget to 'sudo systemctl restart qcluster' when this code is changed
     files = sorted(os.listdir(DATADIR))
     logger.info(f'listing of datadir: [{", ".join(files)}]')
     cnt = 0
@@ -32,10 +33,12 @@ def process_irods_stats():
                         researchfolder, created = ResearchFolder.objects.get_or_create(yoda_name=group)
                         researchfolder.category = data['groups'][group]['category']
                         researchfolder.save()
+
                         vaultfolder, created = VaultFolder.objects.get_or_create(research_folder=researchfolder)
                         if created:
                             vaultfolder.yoda_name = researchfolder.yoda_name.replace('research-', 'vault-', 1)
                             vaultfolder.save()
+
                         for set in data['collections'][vaultfolder.yoda_name]['datasets']:
                             dataset_cnt += 1
                             dataset, created = VaultDataset.objects.get_or_create(yoda_name=set,
@@ -44,21 +47,19 @@ def process_irods_stats():
                             if dataset.status == 'PUBLISHED':
                                 published_cnt += 1
                             dataset.save()
-                        vaultsize = data['collections'][vaultfolder.yoda_name]['size']
-                        if vaultsize is None:
-                            vaultsize = 0
+
                         researchsize = data['collections'][researchfolder.yoda_name]['size']
-                        if researchsize is None:
-                            researchsize = 0
-                        VaultStats.objects.update_or_create(
-                            vault_folder=vaultfolder,
-                            collected=filedate,
-                            defaults={'size': vaultsize})
-                        print(f'{group} | {filedate} | {researchfolder.id} | {researchfolder.yoda_name}')
                         ResearchStats.objects.update_or_create(
                             research_folder=researchfolder,
                             collected=filedate,
                             defaults={'size': researchsize})
+
+                        vaultsize = data['collections'][vaultfolder.yoda_name]['size']
+                        VaultStats.objects.update_or_create(
+                            vault_folder=vaultfolder,
+                            collected=filedate,
+                            defaults={'size': vaultsize})
+
                     elif group.startswith('datamanager-'):
                         logger.info(f'processing datamanager group {group} in {file}')
                         for m in data['groups'][group]['members']:
@@ -68,6 +69,7 @@ def process_irods_stats():
                                 d, created = Datamanager.objects.get_or_create(user=u, yoda_name=group)
                                 d.category = data['groups'][group]['category']
                                 d.save()
+
                 MiscStats.objects.update_or_create(collected=filedate, defaults={
                     'size_total': data['misc']['size_total'],
                     'users_total': data['misc']['users_total'],
@@ -79,8 +81,10 @@ def process_irods_stats():
                     'datasets_total': dataset_cnt,
                     'published_total': published_cnt,
                 })
+
             logger.info(f'move {file} to archived')
             shutil.move(f'{DATADIR}/{file}', f'{DATADIR}/archived/{file}')
+
     logger.info(f'{cnt} files processed')
 
-process_irods_stats()
+#process_irods_stats()
