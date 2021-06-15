@@ -31,15 +31,32 @@ class IrodsData():
                     total_size = total_size + self.data['collections'][path]['size']
             self.data['misc'] = {}
             self.data['misc']['size_total'] = total_size
-            internal, external = self.get_user_count()
+            
+            public_internal, public_external = self.get_member_count('public')
+            self.data['misc']['internal_public_users_total'] = public_internal
+            self.data['misc']['external_public_users_total'] = public_external
+            self.data['misc']['public_users_total'] = public_internal + public_external
+            self.data['misc']['revision_size'] = self.get_revision_size()
+            
+            research_group_members=[]
+            for g in self.data['groups']:
+                research_group_members = list(set(research_group_members + self.data['groups'][g]['members']))
+                research_group_members = list(set(research_group_members + self.data['groups'][g]['read_members']))
+            internal = 0
+            external = 0
+            for name in research_group_members:
+                if ("@" in name) and ("@vu.nl" not in name):
+                    external += 1
+                else:
+                    internal += 1
             self.data['misc']['internal_users_total'] = internal
             self.data['misc']['external_users_total'] = external
-            self.data['misc']['users_total'] = internal + external
-            self.data['misc']['revision_size'] = self.get_revision_size()
+            self.data['misc']['public_total'] = internal + external
         except:
             logger.error('could not get collections and groups, probably an authentication error')
             handle_exception()
         return self.data
+
 
     def _get_session(self):
         try:
@@ -57,10 +74,10 @@ class IrodsData():
             collections[col.name] = {}
         return collections
 
-    def get_user_count(self):
+    def get_member_count(self, group_name):
         internal = 0
         external = 0
-        for user in self.session.user_groups.get('public').members:
+        for user in self.session.user_groups.get(group_name).members:
             if ("@" in user.name) and ("@vu.nl" not in user.name):
                 external += 1
             else:
@@ -81,6 +98,11 @@ class IrodsData():
                 groups[groupname]['category'] = group_obj.metadata.get_one('category').value
                 member_names = [user.name for user in group_obj.members]
                 groups[groupname]['members'] = member_names
+                groups[groupname]['read_members'] = []
+                if path.startswith('research-'):
+                    read_group_obj = self.session.user_groups.get(groupname.replace('research-', 'read-'))
+                    read_member_names = [user.name for user in read_group_obj.members]
+                    groups[groupname]['read_members'] = read_member_names
         return groups
 
     def query_collection_stats(self, full_path):
