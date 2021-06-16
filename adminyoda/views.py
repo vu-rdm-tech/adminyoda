@@ -1,7 +1,13 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 from projects.models import Project, MiscStats, VaultDataset, ResearchFolder, Department
+from datetime import datetime
 
+start_month = 6
+start_year = 2021
+today = datetime.now()
+end_month = today.month
+end_year = today.year
 
 def convert_bytes(num):
     """
@@ -29,13 +35,36 @@ def index(request):
     }
     return render(request, 'index.html', context=context)
 
+def _get_monthly_miscstats():
+    stats = []
+    for year in range(start_year, end_year + 1):
+        if year == start_year:
+            m1 = start_month
+        else:
+            m1 = 1
+        if year == end_year:
+            m2 = end_month
+        else:
+            m2 = 12
+        for month in range(m1, m2 + 1):
+            s = MiscStats.objects.filter(collected__year=year, collected__month=month).order_by('collected').last()
+            s.label = f'{year}-{month}'
+            stats.append(s)
+    return stats
+
+def _get_all_miscstats():
+    stats = []
+    for s in MiscStats.objects.order_by('collected').all():
+        s.label = s.collected
+        stats.append(s)
+    return stats
 
 def size_chart_json(request):
     labels = []
     data = []
-    miscstats = MiscStats.objects.order_by('collected').all()
+    miscstats = _get_all_miscstats()
     for s in miscstats:
-        labels.append(s.collected)
+        labels.append(s.label)
         data.append(round(s.size_total / (1024 * 1024 * 1024), 2))
     datasets = [{
         'label': 'Total size (GB)',
@@ -50,9 +79,9 @@ def size_chart_json(request):
 def project_chart_json(request):
     labels = []
     data = []
-    miscstats = MiscStats.objects.order_by('collected').all()
+    miscstats = _get_all_miscstats()
     for s in miscstats:
-        labels.append(s.collected)
+        labels.append(s.label)
         data.append(s.projects_total)
     datasets = [{
         'label': 'Projects',
@@ -68,9 +97,9 @@ def user_chart_json(request):
     labels = []
     internal = []
     external = []
-    miscstats = MiscStats.objects.order_by('collected').all()
+    miscstats = _get_all_miscstats()
     for s in miscstats:
-        labels.append(s.collected)
+        labels.append(s.label)
         internal.append(s.internal_users_total)
         external.append(s.external_users_total)
     datasets = [
@@ -91,22 +120,20 @@ def user_chart_json(request):
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
-
 def storage_chart_json(request):
     labels = []
     research = []
     vault = []
     revisions = []
     trash = []
-    miscstats = MiscStats.objects.order_by('collected').all()
     div = (1024 * 1024 * 1024)
-    for s in miscstats:
-        labels.append(s.collected)
-        research.append(round(s.size_research / div, 2))
-        vault.append(round(s.size_vault / div, 2))
-        revisions.append(round(s.revision_size / div, 2))
-        trash.append(round(s.trash_size / div, 2))
-
+    stats = _get_monthly_miscstats()
+    for s in stats:
+            labels.append(s.label)
+            research.append(round(s.size_research / div, 2))
+            vault.append(round(s.size_vault / div, 2))
+            revisions.append(round(s.revision_size / div, 2))
+            trash.append(round(s.trash_size / div, 2))
     datasets = [
         {
             'label': 'Research',
