@@ -35,6 +35,10 @@ def projects_index(request):
     }
     return render(request, 'projects/index.html', context=context)
 
+def projects_storage(request):
+    context={}
+    return render(request, 'projects/storage.html', context=context)
+
 def _get_rf(p, d):
     if p is None:
         rf = ResearchFolder.objects.filter(project__isnull=True)

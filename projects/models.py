@@ -115,6 +115,8 @@ class VaultStats(models.Model):
 
 class MiscStats(models.Model):
     size_total = models.BigIntegerField()
+    size_vault = models.BigIntegerField(default=0)
+    size_research = models.BigIntegerField(default=0)
     users_total = models.IntegerField()
     internal_users_total = models.IntegerField()
     external_users_total = models.IntegerField()

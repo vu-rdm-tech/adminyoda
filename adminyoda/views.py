@@ -29,6 +29,7 @@ def index(request):
     }
     return render(request, 'index.html', context=context)
 
+
 def size_chart_json(request):
     labels = []
     data = []
@@ -45,6 +46,7 @@ def size_chart_json(request):
     }]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
+
 def project_chart_json(request):
     labels = []
     data = []
@@ -52,7 +54,7 @@ def project_chart_json(request):
     for s in miscstats:
         labels.append(s.collected)
         data.append(s.projects_total)
-    datasets= [{
+    datasets = [{
         'label': 'Projects',
         'backgroundColor': 'rgba(56,108,176, 0.4)',
         'borderColor': 'rgba(56,108,176)',
@@ -60,6 +62,7 @@ def project_chart_json(request):
         'data': data
     }]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
 
 def user_chart_json(request):
     labels = []
@@ -85,5 +88,54 @@ def user_chart_json(request):
             'borderColor': 'rgba(190,174,212)',
             'borderWidth': 1,
         },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+
+def storage_chart_json(request):
+    labels = []
+    research = []
+    vault = []
+    revisions = []
+    trash = []
+    miscstats = MiscStats.objects.order_by('collected').all()
+    div = (1024 * 1024 * 1024)
+    for s in miscstats:
+        labels.append(s.collected)
+        research.append(s.size_research / div)
+        vault.append(s.size_vault / div)
+        revisions.append(s.revision_size / div)
+        trash.append(s.trash_size / div)
+
+    datasets = [
+        {
+            'label': 'Research',
+            'backgroundColor': 'rgba(253,192,134, 0.4)',
+            'borderColor': 'rgba(253,192,134)',
+            'borderWidth': 1,
+            'data': research
+        },
+        {
+            'label': 'Vault',
+            'backgroundColor': 'rgba(127,201,127, 0.4)',
+            'borderColor': 'rgba(127,201,127)',
+            'borderWidth': 1,
+            'data': vault
+        },
+        {
+            'label': 'Revisions',
+            'backgroundColor': 'rgba(190,174,212,  0.4)',
+            'borderColor': 'rgba(190,174,212)',
+            'borderWidth': 1,
+            'data': revisions
+        },
+        {
+            'label': 'Trash',
+            'backgroundColor': 'rgba(56,108,176, 0.4)',
+            'borderColor': 'rgba(56,108,176)',
+            'borderWidth': 1,
+            'data': trash
+        },
+
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})

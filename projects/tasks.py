@@ -26,6 +26,8 @@ def process_irods_stats():
                 researchgroup_cnt = 0
                 dataset_cnt = 0
                 published_cnt = 0
+                research_size_total = 0
+                vault_size_total = 0
                 for group in data['groups']:
                     if group.startswith('research-'):
                         logger.info(f'processing group {group} in {file}')
@@ -53,12 +55,14 @@ def process_irods_stats():
                             research_folder=researchfolder,
                             collected=filedate,
                             defaults={'size': researchsize})
+                        research_size_total += researchsize
 
                         vaultsize = data['collections'][vaultfolder.yoda_name]['size']
                         VaultStats.objects.update_or_create(
                             vault_folder=vaultfolder,
                             collected=filedate,
                             defaults={'size': vaultsize})
+                        vault_size_total += vaultsize
 
                     elif group.startswith('datamanager-'):
                         logger.info(f'processing datamanager group {group} in {file}')
@@ -72,6 +76,8 @@ def process_irods_stats():
 
                 MiscStats.objects.update_or_create(collected=filedate, defaults={
                     'size_total': data['misc']['size_total'],
+                    'size_research': research_size_total,
+                    'size_vault': vault_size_total,
                     'users_total': data['misc']['users_total'],
                     'internal_users_total': data['misc']['internal_users_total'],
                     'external_users_total': data['misc']['external_users_total'],
