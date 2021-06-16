@@ -38,7 +38,7 @@ def index(request):
     return render(request, 'index.html', context=context)
 
 
-def _get_quarterly_miscstats():
+def _quarterly_miscstats():
     stats = []
     for year in range(start_year, end_year + 1):
         q = 1
@@ -51,7 +51,7 @@ def _get_quarterly_miscstats():
     return stats
 
 
-def _get_monthly_miscstats():
+def _monthly_miscstats():
     stats = []
     for year in range(start_year, end_year + 1):
         if year == start_year:
@@ -69,7 +69,7 @@ def _get_monthly_miscstats():
     return stats
 
 
-def _get_all_miscstats():
+def _all_miscstats():
     stats = []
     for s in MiscStats.objects.order_by('collected').all():
         s.label = s.collected
@@ -80,7 +80,7 @@ def _get_all_miscstats():
 def size_chart_json(request):
     labels = []
     data = []
-    miscstats = _get_all_miscstats()
+    miscstats = _all_miscstats()
     for s in miscstats:
         labels.append(s.label)
         data.append(round(s.size_total / (1024 * 1024 * 1024), 2))
@@ -97,7 +97,7 @@ def size_chart_json(request):
 def project_chart_json(request):
     labels = []
     data = []
-    miscstats = _get_all_miscstats()
+    miscstats = _all_miscstats()
     for s in miscstats:
         labels.append(s.label)
         data.append(s.projects_total)
@@ -115,7 +115,7 @@ def user_chart_json(request):
     labels = []
     internal = []
     external = []
-    miscstats = _get_all_miscstats()
+    miscstats = _all_miscstats()
     for s in miscstats:
         labels.append(s.label)
         internal.append(s.internal_users_total)
@@ -146,7 +146,7 @@ def storage_chart_json(request):
     revisions = []
     trash = []
     div = (1024 * 1024 * 1024)
-    stats = _get_monthly_miscstats()
+    stats = _monthly_miscstats()
     #stats = _get_quarterly_miscstats()
     for s in stats:
         labels.append(s.label)
