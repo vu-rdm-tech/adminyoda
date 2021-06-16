@@ -8,10 +8,10 @@ start_year = 2021
 today = datetime.now()
 end_month = today.month
 end_year = today.year
-quarters = [3, 6, 9, 12]
+COLORSET = ['rgba(141,211,199)','rgba(255,255,179)','rgba(190,186,218)','rgba(251,128,114)','rgba(128,177,211)','rgba(253,180,98)','rgba(179,222,105)','rgba(252,205,229)','rgba(217,217,217)','rgba(188,128,189)','rgba(204,235,197)','rgba(255,237,111)']
 
 
-def convert_bytes(num):
+def _convert_bytes(num):
     """
     this function will convert bytes to MB.... GB... etc
     """
@@ -27,7 +27,7 @@ def index(request):
     miscstats = MiscStats.objects.latest('collected')
     context = {
         'num_projects': num_projects,
-        'total_size': convert_bytes(miscstats.size_total),
+        'total_size': _convert_bytes(miscstats.size_total),
         'num_users': miscstats.users_total,
         'num_datasets': VaultDataset.objects.all().count,
         'last_updated': miscstats.collected,
@@ -39,6 +39,7 @@ def index(request):
 
 
 def _quarterly_miscstats():
+    quarters = [3, 6, 9, 12]
     stats = []
     for year in range(start_year, end_year + 1):
         q = 1
@@ -185,4 +186,27 @@ def storage_chart_json(request):
         },
 
     ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+def faculty_chart_json(request):
+    labels = []
+    data = []
+    index = {}
+    i = 0
+    colors=[]
+    projects = Project.objects.order_by('department').all()
+    for project in projects:
+        faculty = Department.objects.get(id=project.department.id).faculty
+        if faculty not in labels:
+            index[faculty] = i
+            data.append(0)
+            labels.append(faculty)
+            colors.append(COLORSET[i])
+            i += 1
+        data[index[faculty]] += 1
+    datasets = [{
+        'label': 'Faculty',
+        'backgroundColor': colors,
+        'data': data
+    }]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
