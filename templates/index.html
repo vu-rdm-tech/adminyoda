@@ -8,11 +8,15 @@
            href="{% url 'projects_index' %}">
             <strong>Projects:</strong> {{ num_projects }}
         </a>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <strong>Groups:</strong> {{ num_groups }}
-        </li>
+        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+           href="{% url 'projects_storage' %}">
+            <strong>Size:</strong> {{ total_size }}
+        </a>
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <strong>Users:</strong> {{ num_users }}
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>Groups:</strong> {{ num_groups }}
         </li>
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <strong>Archived datasets:</strong> {{ num_datasets }}
@@ -20,9 +24,7 @@
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <strong>Published datasets:</strong> {{ num_published }}
         </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <strong>Total Size:</strong> {{ total_size }}
-        </li>
+
     </ul>
 
     <canvas id="project-chart" data-url="{% url 'project_chart_json' %}"></canvas>
@@ -82,7 +84,7 @@
 
         $(function () {
             setBarChart($("#project-chart"), 'Number of projects', false);
-            setBarChart($("#size-chart"), 'Storage size', false);
+            setBarChart($("#size-chart"), 'Storage size (research and vault)', false);
             setBarChart($("#user-chart"), 'Number of users', true);
         });
 

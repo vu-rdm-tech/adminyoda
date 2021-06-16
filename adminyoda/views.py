@@ -36,7 +36,7 @@ def size_chart_json(request):
     miscstats = MiscStats.objects.order_by('collected').all()
     for s in miscstats:
         labels.append(s.collected)
-        data.append(s.size_total / (1024 * 1024 * 1024))
+        data.append(round(s.size_total / (1024 * 1024 * 1024), 2))
     datasets = [{
         'label': 'Total size (GB)',
         'backgroundColor': 'rgba(253,192,134, 0.4)',
@@ -102,10 +102,10 @@ def storage_chart_json(request):
     div = (1024 * 1024 * 1024)
     for s in miscstats:
         labels.append(s.collected)
-        research.append(s.size_research / div)
-        vault.append(s.size_vault / div)
-        revisions.append(s.revision_size / div)
-        trash.append(s.trash_size / div)
+        research.append(round(s.size_research / div, 2))
+        vault.append(round(s.size_vault / div, 2))
+        revisions.append(round(s.revision_size / div, 2))
+        trash.append(round(s.trash_size / div, 2))
 
     datasets = [
         {
