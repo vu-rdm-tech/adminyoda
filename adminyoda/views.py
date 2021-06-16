@@ -8,6 +8,8 @@ start_year = 2021
 today = datetime.now()
 end_month = today.month
 end_year = today.year
+quarters = [3, 6, 9, 12]
+
 
 def convert_bytes(num):
     """
@@ -35,6 +37,20 @@ def index(request):
     }
     return render(request, 'index.html', context=context)
 
+
+def _get_quarterly_miscstats():
+    stats = []
+    for year in range(start_year, end_year + 1):
+        q = 1
+        for month in quarters:
+            if not ((year == start_year and month < start_month) or (year == end_year and month > end_month)):
+                s = MiscStats.objects.filter(collected__year=year, collected__month__lte = month).order_by('collected').last()
+                s.label = f'Q{q}-{year}'
+                stats.append(s)
+            q += 1
+    return stats
+
+
 def _get_monthly_miscstats():
     stats = []
     for year in range(start_year, end_year + 1):
@@ -52,12 +68,14 @@ def _get_monthly_miscstats():
             stats.append(s)
     return stats
 
+
 def _get_all_miscstats():
     stats = []
     for s in MiscStats.objects.order_by('collected').all():
         s.label = s.collected
         stats.append(s)
     return stats
+
 
 def size_chart_json(request):
     labels = []
@@ -120,6 +138,7 @@ def user_chart_json(request):
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
+
 def storage_chart_json(request):
     labels = []
     research = []
@@ -128,12 +147,13 @@ def storage_chart_json(request):
     trash = []
     div = (1024 * 1024 * 1024)
     stats = _get_monthly_miscstats()
+    #stats = _get_quarterly_miscstats()
     for s in stats:
-            labels.append(s.label)
-            research.append(round(s.size_research / div, 2))
-            vault.append(round(s.size_vault / div, 2))
-            revisions.append(round(s.revision_size / div, 2))
-            trash.append(round(s.trash_size / div, 2))
+        labels.append(s.label)
+        research.append(round(s.size_research / div, 2))
+        vault.append(round(s.size_vault / div, 2))
+        revisions.append(round(s.revision_size / div, 2))
+        trash.append(round(s.trash_size / div, 2))
     datasets = [
         {
             'label': 'Research',
