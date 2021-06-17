@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from projects.models import Project, MiscStats, VaultDataset, ResearchFolder, Department
 from datetime import datetime
+from django.db.models import Sum
 
 start_month = 6
 start_year = 2021
@@ -24,10 +25,12 @@ def _convert_bytes(num):
 # Create your views here.
 def index(request):
     num_projects = Project.objects.all().count
+    requested_size = Project.objects.aggregate(total=Sum('requested_size'))['total'] / 1024 #TB
     miscstats = MiscStats.objects.latest('collected')
     context = {
         'num_projects': num_projects,
         'total_size': _convert_bytes(miscstats.size_total),
+        'requested_size': round(requested_size, 1),
         'num_users': miscstats.users_total,
         'num_datasets': VaultDataset.objects.all().count,
         'last_updated': miscstats.collected,

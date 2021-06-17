@@ -4,7 +4,8 @@
     {% block title %}<title>Yoda administration database</title>{% endblock %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+          integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
     <!-- Add additional CSS in static file -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -18,17 +19,28 @@
         <a class="navbar-brand" href="https://www.vu.nl">
             <img src="https://www.vu.nl/nl/Images/VUlogo_Wit_RGB_mettekst_tcm289-835563.svg">
         </a>
-    {% block nav %}
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
-            <li class="nav-item"><a class="nav-link" href="https://portal.yoda.vu.nl">Yoda portal</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">Admin</a></li>
-        </ul>
-    {% endblock %}
+        {% block nav %}
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="https://portal.yoda.vu.nl">Yoda portal</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">Admin</a></li>
+            </ul>
+        {% endblock %}
     </nav>
     <div class="row">
-        <div class="col-sm-10 ">{% block content %}{% endblock %}</div>
+        <div class="col-sm-12 ">{% block content %}{% endblock %}</div>
     </div>
+    <p></p>
+    <footer class="text-center text-lg-start bg-light text-muted">
+        <!-- Copyright -->
+        <div class="text-center p-4" style="background-color: rgba(0, 0, 0, 0.05);">
+            <a href="https://github.com/vu-rdm-tech/">VU RDM on github</a>
+            &nbsp;|&nbsp;
+            © 2021 Copyright:
+            <a class="text-reset fw-bold" href="https://vu.nl/">Vrije Universiteit Amsterdam</a>
+        </div>
+        <!-- Copyright -->
+    </footer>
 </div>
 </body>
 </html>
