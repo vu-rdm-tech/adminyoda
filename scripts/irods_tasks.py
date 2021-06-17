@@ -18,16 +18,27 @@ def setup_logging():
     logger.setLevel(logging.INFO)
     return logger
 
+def collect():
+    datadir = '/home/peter/adminyoda/scripts/data'
+    filename = f'yodastats-{today_str}.json'
+
+    stats_file = f'{datadir}/{filename}'
+    archived_stats_file = f'{datadir}/archived/{filename}'
+
+    irodsdata = IrodsData()
+    irodsdata.logger=logger
+    logger.info(f'start script {os.path.realpath(__file__)}')
+    if os.path.exists(stats_file):
+        logger.info(f'stats already collected in {stats_file}')
+    elif os.path.exists(archived_stats_file):
+        logger.info(f'stats already collected and processed from {archived_stats_file}')
+    else:
+        logger.info('start data collection')
+        data=irodsdata.collect()
+        logger.info(f'write stats to {stats_file}')
+        with open(stats_file, 'w') as fp:
+            json.dump(data, fp)
+    logger.info('script finished')
+
 logger = setup_logging()
-statsfile = f'/home/peter/adminyoda/scripts/data/yodastats-{today_str}.json'
-irodsdata = IrodsData()
-irodsdata.logger=logger
-logger.info('start script irods_tasks.py')
-if not os.path.exists(statsfile):
-    logger.info(f'collect data in {statsfile}')
-    data=irodsdata.collect()
-    with open(statsfile, 'w') as fp:
-        json.dump(data, fp)
-else:
-    logger.info(f'stats already collected in {statsfile}')
-logger.info('script finished')
+collect()
