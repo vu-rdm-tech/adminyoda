@@ -6,6 +6,7 @@ from irodsdata import IrodsData
 
 today = datetime.now()
 today_str = today.strftime('%Y%m%d')
+year = today.strftime('%Y')
 week = today.strftime('%U')
 
 def setup_logging():
@@ -21,7 +22,7 @@ def setup_logging():
 
 def collect():
     datadir = '/home/peter/adminyoda/scripts/data'
-    filename = f'yodastats-{week}.json'
+    filename = f'yodastats-{year}{week}.json'
 
     stats_file = f'{datadir}/{filename}'
     archived_stats_file = f'{datadir}/archived/{filename}'
