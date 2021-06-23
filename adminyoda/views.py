@@ -9,7 +9,9 @@ start_year = 2021
 today = datetime.now()
 end_month = today.month
 end_year = today.year
-COLORSET = ['rgba(141,211,199)','rgba(255,255,179)','rgba(190,186,218)','rgba(251,128,114)','rgba(128,177,211)','rgba(253,180,98)','rgba(179,222,105)','rgba(252,205,229)','rgba(217,217,217)','rgba(188,128,189)','rgba(204,235,197)','rgba(255,237,111)']
+COLORSET = ['rgba(141,211,199)', 'rgba(255,255,179)', 'rgba(190,186,218)', 'rgba(251,128,114)', 'rgba(128,177,211)',
+            'rgba(253,180,98)', 'rgba(179,222,105)', 'rgba(252,205,229)', 'rgba(217,217,217)', 'rgba(188,128,189)',
+            'rgba(204,235,197)', 'rgba(255,237,111)']
 
 
 def _convert_bytes(num):
@@ -25,7 +27,7 @@ def _convert_bytes(num):
 # Create your views here.
 def index(request):
     num_projects = Project.objects.all().count
-    requested_size = Project.objects.aggregate(total=Sum('requested_size'))['total'] / 1024 #TB
+    requested_size = Project.objects.aggregate(total=Sum('requested_size'))['total'] / 1024  # TB
     miscstats = MiscStats.objects.latest('collected')
     context = {
         'num_projects': num_projects,
@@ -48,7 +50,8 @@ def _quarterly_miscstats():
         q = 1
         for month in quarters:
             if not ((year == start_year and month < start_month) or (year == end_year and month > end_month)):
-                s = MiscStats.objects.filter(collected__year=year, collected__month__lte = month).order_by('collected').last()
+                s = MiscStats.objects.filter(collected__year=year, collected__month__lte=month).order_by(
+                    'collected').last()
                 s.label = f'Q{q}-{year}'
                 stats.append(s)
             q += 1
@@ -68,7 +71,8 @@ def _monthly_miscstats():
             m2 = 12
         for month in range(m1, m2 + 1):
             s = MiscStats.objects.filter(collected__year=year, collected__month=month).order_by('collected').last()
-            s.label = f'{year}-{month}'
+            # s.label = f'{year}-{month}'
+            s.label = s.collected
             stats.append(s)
     return stats
 
@@ -83,25 +87,37 @@ def _all_miscstats():
 
 def size_chart_json(request):
     labels = []
-    data = []
-    miscstats = _all_miscstats()
-    for s in miscstats:
+    research = []
+    vault = []
+    div = (1024 * 1024 * 1024)
+    stats = _monthly_miscstats()
+    for s in stats:
         labels.append(s.label)
-        data.append(round(s.size_total / (1024 * 1024 * 1024), 2))
-    datasets = [{
-        'label': 'Total size (GB)',
-        'backgroundColor': 'rgba(253,192,134, 0.4)',
-        'borderColor': 'rgba(253,192,134)',
-        'borderWidth': 1,
-        'data': data
-    }]
+        research.append(round(s.size_research / div, 2))
+        vault.append(round(s.size_vault / div, 2))
+    datasets = [
+        {
+            'label': 'Research',
+            'backgroundColor': 'rgba(253,192,134, 0.4)',
+            'borderColor': 'rgba(253,192,134)',
+            'borderWidth': 1,
+            'data': research,
+        },
+        {
+            'label': 'Vault',
+            'backgroundColor': 'rgba(127,201,127, 0.4)',
+            'borderColor': 'rgba(127,201,127)',
+            'borderWidth': 1,
+            'data': vault,
+        },
+    ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
 
 def project_chart_json(request):
     labels = []
     data = []
-    miscstats = _all_miscstats()
+    miscstats = _monthly_miscstats()
     for s in miscstats:
         labels.append(s.label)
         data.append(s.projects_total)
@@ -119,7 +135,7 @@ def user_chart_json(request):
     labels = []
     internal = []
     external = []
-    miscstats = _all_miscstats()
+    miscstats = _monthly_miscstats()
     for s in miscstats:
         labels.append(s.label)
         internal.append(s.internal_users_total)
@@ -151,7 +167,7 @@ def storage_chart_json(request):
     trash = []
     div = (1024 * 1024 * 1024)
     stats = _monthly_miscstats()
-    #stats = _get_quarterly_miscstats()
+    # stats = _get_quarterly_miscstats()
     for s in stats:
         labels.append(s.label)
         research.append(round(s.size_research / div, 2))
@@ -164,39 +180,40 @@ def storage_chart_json(request):
             'backgroundColor': 'rgba(253,192,134, 0.4)',
             'borderColor': 'rgba(253,192,134)',
             'borderWidth': 1,
-            'data': research
+            'data': research,
         },
         {
             'label': 'Vault',
             'backgroundColor': 'rgba(127,201,127, 0.4)',
             'borderColor': 'rgba(127,201,127)',
             'borderWidth': 1,
-            'data': vault
+            'data': vault,
         },
         {
             'label': 'Revisions',
             'backgroundColor': 'rgba(190,174,212,  0.4)',
             'borderColor': 'rgba(190,174,212)',
             'borderWidth': 1,
-            'data': revisions
+            'data': revisions,
         },
         {
             'label': 'Trash',
             'backgroundColor': 'rgba(56,108,176, 0.4)',
             'borderColor': 'rgba(56,108,176)',
             'borderWidth': 1,
-            'data': trash
+            'data': trash,
         },
 
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
 
 def faculty_chart_json(request):
     labels = []
     data = []
     index = {}
     i = 0
-    colors=[]
+    colors = []
     projects = Project.objects.order_by('department').all()
     for project in projects:
         faculty = Department.objects.get(id=project.department.id).faculty

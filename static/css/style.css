@@ -7,6 +7,10 @@
     height: 75px;
 }
 
+.navbar-brand {
+    font-size: 32px;
+}
+
 .nav-item > a {
     color: #0089cf;
     border-right: 1px solid #0089cf;

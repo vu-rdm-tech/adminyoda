@@ -8,7 +8,7 @@ today = datetime.now()
 today_str = today.strftime('%Y%m%d')
 
 def setup_logging():
-    LOGFILE = '/home/peter/adminyoda/scripts/log/adminyoda-tasks.log'
+    LOGFILE = f'/home/peter/adminyoda/scripts/log/adminyoda-tasks_{today.year}{today.strftime("%m")}.log'
     logger = logging.getLogger('irods_tasks')
     hdlr = logging.FileHandler(LOGFILE)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')

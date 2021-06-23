@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from .models import Project, MiscStats, VaultDataset, ResearchFolder, Department, VaultFolder, VaultStats, ResearchStats
 
+GB=1024*1024*1024
+
 class CustomObject():
     pass
 
@@ -22,6 +24,8 @@ def projects_index(request):
         d.title=p.title
         d.department=p.department.name
         d.faculty=p.department.faculty
+        d.requested_size=convert_bytes(p.requested_size * GB)
+        d.limit=convert_bytes(p.storage_limit * GB)
         d = _get_rf(p,d)
         data.append(d)
     d = CustomObject()
@@ -56,5 +60,10 @@ def _get_rf(p, d):
         pubcnt = VaultDataset.objects.filter(status='PUBLISHED', vault_folder=vf).count()
         d.num_dataset = d.num_dataset + cnt
         d.num_published = d.num_published + pubcnt
+    d.size_warning=False
+    if p is not None:
+        if size > (p.storage_limit * GB):
+            d.size_warning=True
     d.size = convert_bytes(size)
+
     return d

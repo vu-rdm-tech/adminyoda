@@ -11,18 +11,28 @@
         <th scope="col">Datasets</th>
         <th scope="col">Published</th>
         <th scope="col">Size</th>
+        <th scope="col">Requested size</th>
         </thead>
         <tbody>
         {% for p in projects %}
-
+            {% if p.title == '-' %}
+            <tr class="bg-danger text-white">
+            {% else %}
             <tr>
+            {% endif %}
                 <td>{{ p.title }}</td>
                 <td>{{ p.faculty }}</td>
                 <td>{{ p.department }}</td>
                 <td>{{ p.num_groups }}</td>
                 <td>{{ p.num_dataset }}</td>
                 <td>{{ p.num_published }}</td>
-                <td>{{ p.size }}</td>
+                {% if d.size_warning %}
+                    <td class="bg-danger text-white">{{ p.size }}</td>
+                    <td class="bg-danger text-white">{{ p.requested_size }}</td>
+                {% else %}
+                    <td>{{ p.size }}</td>
+                    <td>{{ p.requested_size }}</td>
+                {% endif %}
             </tr>
         {% endfor %}
         </tbody>
@@ -66,3 +76,4 @@
         });
     </script>
 {% endblock %}
+
