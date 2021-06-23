@@ -28,7 +28,7 @@ SECRET_KEY = '******'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['pvsge048.labs.vu.nl']
+ALLOWED_HOSTS = ['adminyoda.labs.vu.nl', '130.37.194.20']
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_q',
+    'django_tables2',
 ]
 
 MIDDLEWARE = [
@@ -80,10 +81,11 @@ WSGI_APPLICATION = 'adminyoda.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'adminyoda',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': '******',
         'USER': '******',
-        'PASSWORD': '******'
+        'PASSWORD': '*******',
+        'HOST': 'localhost',
     }
 }
 
@@ -123,7 +125,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
-
+STATIC_ROOT = '/home/peter/adminyoda/static/'
 STATIC_URL = '/static/'
 
 # Default primary key field type
@@ -135,4 +137,6 @@ Q_CLUSTER = {
     "name": "yodastats",
     "orm": "default",  # Use Django's ORM + database for broker
     'timeout': 60,
+    'retry': 1000,
 }
+
