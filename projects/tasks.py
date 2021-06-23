@@ -19,10 +19,14 @@ def process_irods_stats():
         if file.startswith('yodastats-'):
             cnt = cnt + 1
             logger.info(f'processing {file}')
-            filedate_str = os.path.splitext(file)[0].split('-')[1]
-            filedate = datetime.strptime(filedate_str, '%Y%m%d').date()
             with open(f'{DATADIR}/{file}', 'r') as fp:
                 data = json.load(fp)
+                if data['collected'] is None:
+                    # old style
+                    filedate_str = os.path.splitext(file)[0].split('-')[1]
+                else:
+                    filedate_str = data['collected']
+                filedate = datetime.strptime(filedate_str, '%Y%m%d').date()
                 researchgroup_cnt = 0
                 dataset_cnt = 0
                 published_cnt = 0

@@ -6,6 +6,7 @@ from irodsdata import IrodsData
 
 today = datetime.now()
 today_str = today.strftime('%Y%m%d')
+week = today.strftime('%U')
 
 def setup_logging():
     LOGFILE = f'/home/peter/adminyoda/scripts/log/adminyoda-tasks_{today.year}{today.strftime("%m")}.log'
@@ -20,7 +21,7 @@ def setup_logging():
 
 def collect():
     datadir = '/home/peter/adminyoda/scripts/data'
-    filename = f'yodastats-{today_str}.json'
+    filename = f'yodastats-{week}.json'
 
     stats_file = f'{datadir}/{filename}'
     archived_stats_file = f'{datadir}/archived/{filename}'
@@ -35,6 +36,7 @@ def collect():
     else:
         logger.info('start data collection')
         data=irodsdata.collect()
+        data['collected'] = today_str
         logger.info(f'write stats to {stats_file}')
         with open(stats_file, 'w') as fp:
             json.dump(data, fp)
