@@ -17,3 +17,13 @@
     padding-left: 10px;
     padding-right: 10px;
 }
+
+.flat-list {
+    padding: 0px;
+}
+
+.flat-list li {
+    list-style: none;
+    margin-left: 0px;
+
+}
