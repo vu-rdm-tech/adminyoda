@@ -1,9 +1,19 @@
 {% extends "base.html" %}
+{% load django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {% breadcrumb "Home" "/" %}
+    {% breadcrumb "Projects" "/projects" %}
+    {% breadcrumb data.project.title "project_index" %}
+{% endblock %}
 
 {% block content %}
+
         <h3>{{ data.project.title }}</h3>
         <p>{{ data.project.description }}</p>
-        <p><strong>Requested size:</strong> {{ data.project.requested_size }}GB</p>
+        <p><strong>Requested size:</strong> {{ data.project.requested_size }}GB<br>
+        <strong>Date requested:</strong> {{ data.project.request_date }}</p>
+
         <table class="table">
             <th></th>
             <th>Research</th>

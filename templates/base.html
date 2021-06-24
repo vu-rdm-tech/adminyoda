@@ -29,6 +29,12 @@
             </ul>
         {% endblock %}
     </nav>
+    {% load django_bootstrap_breadcrumbs %}
+    {% block breadcrumbs %}
+        {% clear_breadcrumbs %}
+        {% breadcrumb "Home" "/" %}
+    {% endblock %}
+    {% render_breadcrumbs "django_bootstrap_breadcrumbs/bootstrap4.html" %}
     <div class="row">
         <div class="col-sm-12 ">{% block content %}{% endblock %}</div>
     </div>
