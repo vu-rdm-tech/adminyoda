@@ -45,6 +45,7 @@
         </table>
 
     <canvas id="project-size-chart" data-url="project_size_chart_json/{{ data.project.id }}"></canvas>
+    <canvas id="project-delta-chart" data-url="project_delta_chart_json/{{ data.project.id }}"></canvas>
     <script>
         function setBarChart(chart, title, stacked) {
             $.ajax({
@@ -93,6 +94,7 @@
 
         $(function () {
             setBarChart($("#project-size-chart"), 'Size', false);
+            setBarChart($("#project-delta-chart"), 'Growth', false);
         });
 
     </script>
