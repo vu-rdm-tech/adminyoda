@@ -43,10 +43,9 @@
             <td></td>
         </tr>
         </table>
-    <!--
-    <canvas id="project-size-chart" data-url=""></canvas>
-    <canvas id="project-size-delta-chart" data-url=""></canvas>
 
+    <canvas id="project-size-chart" data-url="project_size_chart_json/{{ data.project.id }}"></canvas>
+    <script>
         function setBarChart(chart, title, stacked) {
             $.ajax({
                 url: chart.data("url"),
@@ -94,9 +93,7 @@
 
         $(function () {
             setBarChart($("#project-size-chart"), 'Size', false);
-            setBarChart($("#project-size-delta-chart"), 'Delta', false);
         });
 
     </script>
--->
 {% endblock %}

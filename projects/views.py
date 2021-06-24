@@ -1,8 +1,17 @@
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from .models import Project, MiscStats, VaultDataset, ResearchFolder, Department, VaultFolder, VaultStats, ResearchStats, Person, Datamanager
+from datetime import datetime
 
 GB=1024*1024*1024
+start_month = 6
+start_year = 2021
+today = datetime.now()
+end_month = today.month
+end_year = today.year
+COLORSET = ['rgba(141,211,199)', 'rgba(255,255,179)', 'rgba(190,186,218)', 'rgba(251,128,114)', 'rgba(128,177,211)',
+            'rgba(253,180,98)', 'rgba(179,222,105)', 'rgba(252,205,229)', 'rgba(217,217,217)', 'rgba(188,128,189)',
+            'rgba(204,235,197)', 'rgba(255,237,111)']
 
 class CustomObject():
     pass
@@ -111,3 +120,85 @@ def project_detail(request, project_id):
         raise Http404("Project does not exist")
 
     return render(request, 'projects/details.html', context={'data': data})
+
+def _monthly_researchstats(research_folder):
+    stats = []
+    for year in range(start_year, end_year + 1):
+        if year == start_year:
+            m1 = start_month
+        else:
+            m1 = 1
+        if year == end_year:
+            m2 = end_month
+        else:
+            m2 = 12
+        for month in range(m1, m2 + 1):
+            s = ResearchStats.objects.filter(research_folder=research_folder, collected__year=year, collected__month=month).order_by('collected').last()
+            s.label = f'{year}-{month}'
+            #s.label = s.collected
+            stats.append(s)
+    return stats
+
+def _monthly_vaultstats(vault_folder):
+    stats = []
+    for year in range(start_year, end_year + 1):
+        if year == start_year:
+            m1 = start_month
+        else:
+            m1 = 1
+        if year == end_year:
+            m2 = end_month
+        else:
+            m2 = 12
+        for month in range(m1, m2 + 1):
+            s = VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year, collected__month=month).order_by('collected').last()
+            s.label = f'{year}-{month}'
+            #s.label = s.collected
+            stats.append(s)
+    return stats
+
+def project_size_chart_json(request, project_id):
+    labels = []
+    research = []
+    vault = []
+    div = (1024 * 1024 * 1024)
+    project = Project.objects.get(pk=project_id)
+    rf = ResearchFolder.objects.filter(project=project)
+    research_stats=[]
+    vault_stats=[]
+    for f in rf:
+        rstats = _monthly_researchstats(f)
+        vf = VaultFolder.objects.get(research_folder=f)
+        vstats = _monthly_vaultstats(vf)
+        i=0
+        for rs in rstats:
+            if len(research_stats) >= i+1:
+                research_stats[i].size += rs.size
+                vault_stats[i].size += vstats[i].size
+            else:
+                research_stats.append(rs)
+                vault_stats.append(vstats[i])
+            i+=1
+    i=0
+    for rs in research_stats:
+        labels.append(rs.label)
+        research.append(round(rs.size / div, 2))
+        vault.append(round(vault_stats[i].size / div, 2))
+        i+=1
+    datasets = [
+        {
+            'label': 'Research',
+            'backgroundColor': 'rgba(253,192,134, 0.4)',
+            'borderColor': 'rgba(253,192,134)',
+            'borderWidth': 1,
+            'data': research,
+        },
+        {
+            'label': 'Vault',
+            'backgroundColor': 'rgba(127,201,127, 0.4)',
+            'borderColor': 'rgba(127,201,127)',
+            'borderWidth': 1,
+            'data': vault,
+        },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
