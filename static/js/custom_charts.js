@@ -1,6 +1,6 @@
 var charts=[];
 
-function getImage(chart_id) {
+function downloadImage(chart_id) {
     var a = document.createElement('a');
     a.href = charts['#'+chart_id].toBase64Image();
     a.download = chart_id+'.png';
@@ -34,6 +34,50 @@ function setStackedBarChart(chart, title) {
                         }],
                         xAxes: [{
                             stacked: true
+                        }]
+                    }
+            }
+
+            charts[chart.selector]=new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: data.datasets
+                },
+                options: options
+            });
+
+        }
+    });
+}
+
+function setBarChart(chart, title) {
+    $.ajax({
+        url: chart.data("url"),
+        success: function (data) {
+
+            var ctx = chart[0].getContext("2d");
+
+            var options = {
+                responsive: true,
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: title
+                },
+                scales:
+                    {
+                        yAxes: [{
+                            ticks:
+                                {
+                                    beginAtZero: true
+                                },
+                            stacked: false
+                        }],
+                        xAxes: [{
+                            stacked: false
                         }]
                     }
             }

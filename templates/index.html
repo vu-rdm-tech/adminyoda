@@ -30,13 +30,13 @@
     </ul>
 
     <canvas id="project-chart" data-url="{% url 'project_chart_json' %}"></canvas>
-    <a href="" onclick="getImage('project-chart')">download</a>
+    <a href="" onclick="downloadImage('project-chart')">download</a>
     <hr/>
     <canvas id="size-chart" data-url="{% url 'size_chart_json' %}"></canvas>
-    <a href="" onclick="getImage('size-chart')">download</a>
+    <a href="" onclick="downloadImage('size-chart')">download</a>
     <hr/>
     <canvas id="user-chart" data-url="{% url 'user_chart_json' %}"></canvas>
-    <a href="" onclick="getImage('user-chart')">download</a>
+    <a href="" onclick="downloadImage('user-chart')">download</a>
     <hr/>
     <script>
         $(function () {
