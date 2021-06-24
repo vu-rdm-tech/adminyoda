@@ -55,57 +55,13 @@
         </table>
 
     <canvas id="project-size-chart" data-url="project_size_chart_json/{{ data.project.id }}"></canvas>
+    <a href="" onclick="getImage('project-size-chart')">download</a>
     <canvas id="project-delta-chart" data-url="project_delta_chart_json/{{ data.project.id }}"></canvas>
+    <a href="" onclick="getImage('project-delta-chart')">download</a>
     <script>
-        function setBarChart(chart, title, stacked) {
-            $.ajax({
-                url: chart.data("url"),
-                success: function (data) {
-
-                    var ctx = chart[0].getContext("2d");
-
-                    var options = {
-                        responsive: true,
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: title
-                        },
-                        scales:
-                            {
-                                yAxes: [{
-                                    ticks:
-                                        {
-                                            beginAtZero: true
-                                        },
-                                    stacked: true
-                                }],
-                                xAxes: [{
-                                    stacked: true
-                                }]
-                            }
-
-                    }
-
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: data.labels,
-                            datasets: data.datasets
-                        },
-                        options: options
-                    });
-
-                }
-            });
-        }
-
         $(function () {
             setBarChart($("#project-size-chart"), 'Size', false);
             setBarChart($("#project-delta-chart"), 'Growth', false);
         });
-
     </script>
 {% endblock %}
