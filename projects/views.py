@@ -132,11 +132,15 @@ def _monthly_researchstats(research_folder):
             m2 = end_month
         else:
             m2 = 12
+        last_size=0
         for month in range(m1, m2 + 1):
             s = ResearchStats.objects.filter(research_folder=research_folder, collected__year=year, collected__month=month).order_by('collected').last()
             s.label = f'{year}-{month}'
+            s.delta=s.size-last_size
+            last_size=s.size
             #s.label = s.collected
             stats.append(s)
+        stats[0].delta=0
     return stats
 
 def _monthly_vaultstats(vault_folder):
@@ -150,18 +154,18 @@ def _monthly_vaultstats(vault_folder):
             m2 = end_month
         else:
             m2 = 12
+        last_size=0
         for month in range(m1, m2 + 1):
             s = VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year, collected__month=month).order_by('collected').last()
             s.label = f'{year}-{month}'
+            s.delta=s.size-last_size
+            last_size=s.size
             #s.label = s.collected
             stats.append(s)
+        stats[0].delta=0
     return stats
 
-def project_size_chart_json(request, project_id):
-    labels = []
-    research = []
-    vault = []
-    div = (1024 * 1024 * 1024)
+def _research_stats(project_id):
     project = Project.objects.get(pk=project_id)
     rf = ResearchFolder.objects.filter(project=project)
     research_stats=[]
@@ -175,15 +179,55 @@ def project_size_chart_json(request, project_id):
             if len(research_stats) >= i+1:
                 research_stats[i].size += rs.size
                 vault_stats[i].size += vstats[i].size
+                research_stats[i].delta += rs.delta
+                vault_stats[i].delta += vstats[i].delta
             else:
                 research_stats.append(rs)
                 vault_stats.append(vstats[i])
             i+=1
+    return research_stats, vault_stats
+
+def project_size_chart_json(request, project_id):
+    labels = []
+    research = []
+    vault = []
+    div = (1024 * 1024 * 1024)
+    research_stats, vault_stats = _research_stats(project_id)
     i=0
     for rs in research_stats:
         labels.append(rs.label)
         research.append(round(rs.size / div, 2))
         vault.append(round(vault_stats[i].size / div, 2))
+        i+=1
+    datasets = [
+        {
+            'label': 'Research',
+            'backgroundColor': 'rgba(253,192,134, 0.4)',
+            'borderColor': 'rgba(253,192,134)',
+            'borderWidth': 1,
+            'data': research,
+        },
+        {
+            'label': 'Vault',
+            'backgroundColor': 'rgba(127,201,127, 0.4)',
+            'borderColor': 'rgba(127,201,127)',
+            'borderWidth': 1,
+            'data': vault,
+        },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+def project_delta_chart_json(request, project_id):
+    labels = []
+    research = []
+    vault = []
+    div = (1024 * 1024 * 1024)
+    research_stats, vault_stats = _research_stats(project_id)
+    i=0
+    for rs in research_stats:
+        labels.append(rs.label)
+        research.append(round(rs.delta / div, 2))
+        vault.append(round(vault_stats[i].delta / div, 2))
         i+=1
     datasets = [
         {
