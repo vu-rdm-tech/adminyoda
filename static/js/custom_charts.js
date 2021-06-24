@@ -7,7 +7,7 @@ function getImage(chart_id) {
     a.click();
 }
 
-function setBarChart(chart, title) {
+function setStackedBarChart(chart, title) {
     $.ajax({
         url: chart.data("url"),
         success: function (data) {

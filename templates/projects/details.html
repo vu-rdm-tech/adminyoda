@@ -60,8 +60,8 @@
     <a href="" onclick="getImage('project-delta-chart')">download</a>
     <script>
         $(function () {
-            setBarChart($("#project-size-chart"), 'Size', false);
-            setBarChart($("#project-delta-chart"), 'Growth', false);
+            setStackedBarChart($("#project-size-chart"), 'Size', false);
+            setStackedBarChart($("#project-delta-chart"), 'Growth', false);
         });
     </script>
 {% endblock %}
