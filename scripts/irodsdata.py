@@ -1,15 +1,10 @@
-import os
-import ssl
 from irods.column import Like
 from irods.models import Collection, DataObject
-from irods.session import iRODSSession
-import irods.exception
-from config import SURF_PRE
 import logging
 from setup_session import setup_session
 
 logger = logging.getLogger('irods_tasks')
-
+ZONE='tempZone'
 
 def handle_exception():
     logger.warning('script failed with an error')
@@ -67,7 +62,7 @@ class IrodsData():
 
     def get_home_collections(self):
         collections = {}
-        coll = self.session.collections.get(f'/{SURF_PRE["zone"]}/home')
+        coll = self.session.collections.get(f'/{ZONE}/home')
         for col in coll.subcollections:
             collections[col.name] = {}
         return collections
@@ -83,11 +78,11 @@ class IrodsData():
         return internal, external
 
     def get_revision_size(self):
-        size, cnt = self.query_collection_stats(f'/{SURF_PRE["zone"]}/yoda/revisions')
+        size, cnt = self.query_collection_stats(f'/{ZONE}/yoda/revisions')
         return size
 
     def get_trash_size(self):
-        size, cnt = self.query_collection_stats(f'/{SURF_PRE["zone"]}/trash')
+        size, cnt = self.query_collection_stats(f'/{ZONE}/trash')
         return size
 
     def get_groups(self):
@@ -117,15 +112,15 @@ class IrodsData():
 
     def get_stats(self, path):
         stats = {}
-        stats['size'], stats['count'] = self.query_collection_stats(full_path=f'/{SURF_PRE["zone"]}/home/{path}')
+        stats['size'], stats['count'] = self.query_collection_stats(full_path=f'/{ZONE}/home/{path}')
         if path.startswith('vault-'):
             stats['datasets'] = {}
-            coll = self.session.collections.get(f'/{SURF_PRE["zone"]}/home/{path}')
+            coll = self.session.collections.get(f'/{ZONE}/home/{path}')
             for col in coll.subcollections:  # datasets
                 dataset = col.name
                 stats['datasets'][dataset] = {}
                 stats['datasets'][dataset]['size'], stats['datasets'][dataset]['count'] = self.query_collection_stats(
-                    full_path=f'/{SURF_PRE["zone"]}/home/{path}/{dataset}%')
+                    full_path=f'/{ZONE}/home/{path}/{dataset}%')
                 status = col.metadata.get_one('org_vault_status').value
                 stats['datasets'][dataset]['status'] = status
                 if status in ['PUBLISHED', 'DEPUBLISHED']:
