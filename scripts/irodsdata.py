@@ -6,6 +6,7 @@ from irods.session import iRODSSession
 import irods.exception
 from config import SURF_PRE
 import logging
+from setup_session import setup_session
 
 logger = logging.getLogger('irods_tasks')
 
@@ -18,9 +19,9 @@ def handle_exception():
 class IrodsData():
     def __init__(self):
         self.data = {'collections': {}, 'groups': []}
-        self.session = self._get_session()
 
     def collect(self):
+        self.session = self._get_session()
         try:
             self.data['collections'] = self.get_home_collections()
             self.data['groups'] = self.get_groups()
@@ -61,13 +62,8 @@ class IrodsData():
 
 
     def _get_session(self):
-        try:
-            env_file = os.environ['IRODS_ENVIRONMENT_FILE']
-        except KeyError:
-            env_file = os.path.expanduser('~/.irods/irods_environment.json')
-        ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=None, capath=None, cadata=None)
-        ssl_settings = {'ssl_context': ssl_context}
-        return iRODSSession(irods_env_file=env_file, **ssl_settings)
+        logger.info('setup irods session')
+        return setup_session()
 
     def get_home_collections(self):
         collections = {}
