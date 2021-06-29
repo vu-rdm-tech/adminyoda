@@ -55,10 +55,8 @@
         </table>
 
     <canvas id="project-size-chart" data-url="project_size_chart_json/{{ data.project.id }}"></canvas>
-    <button type="button" class="btn btn-primary" onclick="downloadImage('project-size-chart')"><i class="bi bi-download"></i></button>
     <hr/>
     <canvas id="project-delta-chart" data-url="project_delta_chart_json/{{ data.project.id }}"></canvas>
-    <button type="button" class="btn btn-primary" onclick="downloadImage('project-delta-chart')"><i class="bi bi-download"></i></button>
     <script>
         $(function () {
             setStackedBarChart($("#project-size-chart"), 'Size', false);

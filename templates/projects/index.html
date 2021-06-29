@@ -43,7 +43,6 @@
         </tbody>
     </table>
     <canvas id="faculty-chart" data-url="{% url 'faculty_chart_json' %}"></canvas>
-    <button type="button" class="btn btn-primary" onclick="downloadImage('faculty-chart')"><i class="bi bi-download"></i></button>
     <script>
         $(function () {
             setPieChart($("#faculty-chart"), 'Projects per faculty', false);
