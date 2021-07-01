@@ -27,7 +27,7 @@ class IrodsData():
 
             self.data['misc'] = {}
             self.data['misc']['size_total'] = total_size
-            
+
             public_internal, public_external = self.get_member_count('public')
             self.data['misc']['internal_public_users_total'] = public_internal
             self.data['misc']['external_public_users_total'] = public_external
@@ -35,7 +35,7 @@ class IrodsData():
 
             self.data['misc']['revision_size'] = self.get_revision_size()
             self.data['misc']['trash_size'] = self.get_trash_size()
-            
+
             research_group_members=[]
             for g in self.data['groups']:
                 research_group_members = list(set(research_group_members + self.data['groups'][g]['members']))
@@ -121,9 +121,12 @@ class IrodsData():
                 stats['datasets'][dataset] = {}
                 stats['datasets'][dataset]['size'], stats['datasets'][dataset]['count'] = self.query_collection_stats(
                     full_path=f'/{ZONE}/home/{path}/{dataset}%')
-                status = col.metadata.get_one('org_vault_status').value
-                stats['datasets'][dataset]['status'] = status
+                try:
+                    status = col.metadata.get_one('org_vault_status').value # won't be set on status "approved for publication"
+                except:
+                    status=''
                 if status in ['PUBLISHED', 'DEPUBLISHED']:
                     stats['datasets'][dataset]['landingPageUrl'] = col.metadata.get_one(
                         'org_publication_landingPageUrl').value
+                stats['datasets'][dataset]['status'] = status
         return stats
