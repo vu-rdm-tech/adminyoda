@@ -49,11 +49,10 @@ def _quarterly_miscstats():
     for year in range(start_year, end_year + 1):
         q = 1
         for month in quarters:
-            if not ((year == start_year and month < start_month) or (year == end_year and month > end_month)):
-                s = MiscStats.objects.filter(collected__year=year, collected__month__lte=month).order_by(
-                    'collected').last()
-                s.label = f'Q{q}-{year}'
-                stats.append(s)
+            s = MiscStats.objects.filter(collected__year=year, collected__month__lte=month).order_by('collected').last()
+            if s is not None:
+                 s.label = f'Q{q}-{year}'
+                 stats.append(s)
             q += 1
     return stats
 
@@ -61,19 +60,11 @@ def _quarterly_miscstats():
 def _monthly_miscstats():
     stats = []
     for year in range(start_year, end_year + 1):
-        if year == start_year:
-            m1 = start_month
-        else:
-            m1 = 1
-        if year == end_year:
-            m2 = end_month
-        else:
-            m2 = 12
-        for month in range(m1, m2 + 1):
+        for month in range(1, 13):
             s = MiscStats.objects.filter(collected__year=year, collected__month=month).order_by('collected').last()
-            # s.label = f'{year}-{month}'
-            s.label = s.collected
-            stats.append(s)
+            if s is not None:
+                s.label = s.collected
+                stats.append(s)
     return stats
 
 

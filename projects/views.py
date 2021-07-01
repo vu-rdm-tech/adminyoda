@@ -124,44 +124,29 @@ def project_detail(request, project_id):
 def _monthly_researchstats(research_folder):
     stats = []
     for year in range(start_year, end_year + 1):
-        if year == start_year:
-            m1 = start_month
-        else:
-            m1 = 1
-        if year == end_year:
-            m2 = end_month
-        else:
-            m2 = 12
         last_size=0
-        for month in range(m1, m2 + 1):
+        for month in range(1, 12):
             s = ResearchStats.objects.filter(research_folder=research_folder, collected__year=year, collected__month=month).order_by('collected').last()
-            s.label = f'{year}-{month}'
-            s.delta=s.size-last_size
-            last_size=s.size
-            #s.label = s.collected
-            stats.append(s)
+            if s is not None:
+                s.label = f'{year}-{month}'
+                s.delta=s.size-last_size
+                last_size=s.size
+                stats.append(s)
         stats[0].delta=0
     return stats
 
 def _monthly_vaultstats(vault_folder):
     stats = []
     for year in range(start_year, end_year + 1):
-        if year == start_year:
-            m1 = start_month
-        else:
-            m1 = 1
-        if year == end_year:
-            m2 = end_month
-        else:
-            m2 = 12
         last_size=0
-        for month in range(m1, m2 + 1):
+        for month in range(1, 13):
             s = VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year, collected__month=month).order_by('collected').last()
-            s.label = f'{year}-{month}'
-            s.delta=s.size-last_size
-            last_size=s.size
-            #s.label = s.collected
-            stats.append(s)
+            if s is not None:
+                s.label = f'{year}-{month}'
+                s.delta=s.size-last_size
+                last_size=s.size
+                #s.label = s.collected
+                stats.append(s)
         stats[0].delta=0
     return stats
 
