@@ -40,11 +40,12 @@ def projects_index(request):
         d = _get_rf(p,d)
         data.append(d)
     d = CustomObject()
+    d = _get_rf(None, d) # unconnected research folders
     d.title = '-'
     d.department = '-'
     d.faculty = '-'
-    d = _get_rf(None, d)
-    data.append(d)
+    if d.num_groups>0:
+        data.append(d)
     context = {
         'projects': data
     }
