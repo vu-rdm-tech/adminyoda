@@ -34,9 +34,9 @@ def index(request):
         'total_size': _convert_bytes(miscstats.size_total),
         'requested_size': round(requested_size, 1),
         'num_users': miscstats.users_total,
-        'num_datasets': VaultDataset.objects.all().count,
+        'num_datasets': VaultDataset.objects.filter(deleted__isnull=True).all().count,
         'last_updated': miscstats.collected,
-        'num_groups': ResearchFolder.objects.all().count,
+        'num_groups': ResearchFolder.objects.filter(deleted__isnull=True).all().count,
         'num_published': VaultDataset.objects.filter(status='PUBLISHED').all().count,
         'num_departments': Department.objects.count()
     }

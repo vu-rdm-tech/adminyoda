@@ -10,6 +10,15 @@ DATADIR = '/home/peter/adminyoda/scripts/data'
 logger = logging.getLogger(__name__)
 
 
+def cleanup():
+    # set deleted date when last updated more than 2 weeks ago for
+    # researchfolder
+    # vaultfolder
+    # vaultdataset
+
+    # Also update reporting etc to exclude records where deleted is set
+    pass
+
 def process_irods_stats():
     # don't forget to 'sudo systemctl restart qcluster' when this code is changed
     files = sorted(os.listdir(DATADIR))

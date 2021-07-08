@@ -57,9 +57,9 @@ def projects_storage(request):
 
 def _get_rf(p, d):
     if p is None:
-        rf = ResearchFolder.objects.filter(project__isnull=True)
+        rf = ResearchFolder.objects.filter(project__isnull=True, deleted__isnull=True)
     else:
-        rf = ResearchFolder.objects.filter(project=p)
+        rf = ResearchFolder.objects.filter(project=p, deleted__isnull=True)
     d.num_groups = rf.count()
     d.num_dataset = 0
     d.num_published = 0
@@ -83,7 +83,7 @@ def _get_rf(p, d):
 def project_detail(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
-        rf = ResearchFolder.objects.filter(project=project)
+        rf = ResearchFolder.objects.filter(project=project, deleted__isnull=True)
         data=CustomObject()
         data.project=project
         data.research_folders=[]
@@ -153,7 +153,7 @@ def _monthly_vaultstats(vault_folder):
 
 def _research_stats(project_id):
     project = Project.objects.get(pk=project_id)
-    rf = ResearchFolder.objects.filter(project=project)
+    rf = ResearchFolder.objects.filter(project=project, deleted__isnull=True)
     research_stats=[]
     vault_stats=[]
     for f in rf:
