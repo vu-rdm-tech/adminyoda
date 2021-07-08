@@ -63,7 +63,8 @@ def _monthly_miscstats():
         for month in range(1, 13):
             s = MiscStats.objects.filter(collected__year=year, collected__month=month).order_by('collected').last()
             if s is not None:
-                s.label = s.collected
+                #s.label = s.collected
+                s.label = f'{year}-{month}'
                 stats.append(s)
     return stats
 
