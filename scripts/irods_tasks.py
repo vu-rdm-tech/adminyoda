@@ -27,14 +27,14 @@ def collect():
     stats_file = f'{datadir}/{filename}'
     archived_stats_file = f'{datadir}/archived/{filename}'
 
-    irodsdata = IrodsData()
-    irodsdata.logger=logger
     logger.info(f'start script {os.path.realpath(__file__)}')
     if os.path.exists(stats_file):
         logger.info(f'stats already collected in {stats_file}')
     elif os.path.exists(archived_stats_file):
         logger.info(f'stats already collected and processed from {archived_stats_file}')
     else:
+        irodsdata = IrodsData()
+        irodsdata.logger=logger
         logger.info('start data collection')
         data=irodsdata.collect()
         data['collected'] = today_str

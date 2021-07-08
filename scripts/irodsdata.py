@@ -13,52 +13,56 @@ def handle_exception():
 
 class IrodsData():
     def __init__(self):
+        self.session = None
         self.data = {'collections': {}, 'groups': []}
 
     def collect(self):
-        self.session = self._get_session()
-        try:
-            self.data['collections'] = self.get_home_collections()
-            self.data['groups'] = self.get_groups()
-            total_size = 0
-            for path in self.data['collections']:
-                self.data['collections'][path] = self.get_stats(path=path)
-                total_size = total_size + self.data['collections'][path]['size']
+        self._get_session()
+        self.data['collections'] = self.get_home_collections()
+        self.data['groups'] = self.get_groups()
 
-            self.data['misc'] = {}
-            self.data['misc']['size_total'] = total_size
+        total_size = 0
+        for path in self.data['collections']:
+            self.data['collections'][path] = self.get_stats(path=path)
+            total_size = total_size + self.data['collections'][path]['size']
 
-            public_internal, public_external = self.get_member_count('public')
-            self.data['misc']['internal_public_users_total'] = public_internal
-            self.data['misc']['external_public_users_total'] = public_external
-            self.data['misc']['public_users_total'] = public_internal + public_external
+        self.data['misc'] = {}
+        self.data['misc']['size_total'] = total_size
 
-            self.data['misc']['revision_size'] = self.get_revision_size()
-            self.data['misc']['trash_size'] = self.get_trash_size()
+        public_internal, public_external = self.get_member_count('public')
+        self.data['misc']['internal_public_users_total'] = public_internal
+        self.data['misc']['external_public_users_total'] = public_external
+        self.data['misc']['public_users_total'] = public_internal + public_external
 
-            research_group_members=[]
-            for g in self.data['groups']:
-                research_group_members = list(set(research_group_members + self.data['groups'][g]['members']))
-                research_group_members = list(set(research_group_members + self.data['groups'][g]['read_members']))
-            internal = 0
-            external = 0
-            for name in research_group_members:
-                if ("@" in name) and ("@vu.nl" not in name):
-                    external += 1
-                else:
-                    internal += 1
-            self.data['misc']['internal_users_total'] = internal
-            self.data['misc']['external_users_total'] = external
-            self.data['misc']['users_total'] = internal + external
-        except:
-            logger.error('could not get collections and groups, probably an authentication error')
-            handle_exception()
+        self.data['misc']['revision_size'] = self.get_revision_size()
+        self.data['misc']['trash_size'] = self.get_trash_size()
+
+        research_group_members=[]
+        for g in self.data['groups']:
+            research_group_members = list(set(research_group_members + self.data['groups'][g]['members']))
+            research_group_members = list(set(research_group_members + self.data['groups'][g]['read_members']))
+        internal = 0
+        external = 0
+        for name in research_group_members:
+            if ("@" in name) and ("@vu.nl" not in name):
+                external += 1
+            else:
+                internal += 1
+        self.data['misc']['internal_users_total'] = internal
+        self.data['misc']['external_users_total'] = external
+        self.data['misc']['users_total'] = internal + external
         return self.data
 
 
     def _get_session(self):
-        logger.info('setup irods session')
-        return setup_session()
+        try:
+            logger.info('setup irods session')
+            self.session = setup_session()
+            self.get_home_collections() # try once to see if we are logged in
+        except:
+            logger.error('could not get collections and groups, probably an authentication error')
+            handle_exception()
+        return True
 
     def get_home_collections(self):
         collections = {}
