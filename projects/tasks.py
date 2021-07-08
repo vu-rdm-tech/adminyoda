@@ -1,26 +1,28 @@
 import json
 import os
 import shutil
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from projects.models import ResearchFolder, VaultFolder, VaultDataset, VaultStats, ResearchStats, Person, Datamanager, \
     MiscStats
+from django.utils.timezone import now, make_aware
 
 DATADIR = '/home/peter/adminyoda/scripts/data'
 logger = logging.getLogger(__name__)
 
+# don't forget to 'sudo systemctl restart qcluster' when code here is changed
 
 def cleanup():
-    # set deleted date when last updated more than 2 weeks ago for
-    # researchfolder
-    # vaultfolder
-    # vaultdataset
+    days=2
+    last_update = MiscStats.objects.order_by('collected').last().collected
+    cutoff=make_aware(datetime.combine(last_update, datetime.min.time())) - timedelta(days=days)
+    logger.info(f'Mark folders and datasets last updated before {cutoff} as deleted.')
+    ResearchFolder.objects.filter(updated__lte=cutoff).update(deleted=now())
+    VaultFolder.objects.filter(updated__lte=cutoff).update(deleted=now())
+    VaultDataset.objects.filter(updated__lte=cutoff).update(deleted=now())
 
-    # Also update reporting etc to exclude records where deleted is set
-    pass
 
 def process_irods_stats():
-    # don't forget to 'sudo systemctl restart qcluster' when this code is changed
     files = sorted(os.listdir(DATADIR))
     logger.info(f'listing of datadir: [{", ".join(files)}]')
     cnt = 0
@@ -95,7 +97,7 @@ def process_irods_stats():
                     'internal_users_total': data['misc']['internal_users_total'],
                     'external_users_total': data['misc']['external_users_total'],
                     'revision_size': data['misc']['revision_size'],
-                    'trash_size':  data['misc']['trash_size'],
+                    'trash_size': data['misc']['trash_size'],
                     'groups_total': researchgroup_cnt,
                     'datasets_total': dataset_cnt,
                     'published_total': published_cnt,
@@ -106,4 +108,5 @@ def process_irods_stats():
 
     logger.info(f'{cnt} files processed')
 
-#process_irods_stats()
+# process_irods_stats()
+# cleanup()
