@@ -4,7 +4,6 @@ import logging
 from setup_session import setup_session
 
 logger = logging.getLogger('irods_tasks')
-ZONE='tempZone'
 
 def handle_exception():
     logger.warning('script failed with an error')
@@ -15,6 +14,7 @@ class IrodsData():
     def __init__(self):
         self.session = None
         self.data = {'collections': {}, 'groups': []}
+        self.zone = 'tempZone'
 
     def collect(self):
         self._get_session()
@@ -57,7 +57,7 @@ class IrodsData():
     def _get_session(self):
         try:
             logger.info('setup irods session')
-            self.session = setup_session()
+            self.session, self.zone = setup_session()
             self.get_home_collections() # try once to see if we are logged in
         except:
             logger.error('could not get collections and groups, probably an authentication error')
@@ -66,7 +66,7 @@ class IrodsData():
 
     def get_home_collections(self):
         collections = {}
-        coll = self.session.collections.get(f'/{ZONE}/home')
+        coll = self.session.collections.get(f'/{self.zone}/home')
         for col in coll.subcollections:
             collections[col.name] = {}
         return collections
@@ -82,11 +82,11 @@ class IrodsData():
         return internal, external
 
     def get_revision_size(self):
-        size, cnt = self.query_collection_stats(f'/{ZONE}/yoda/revisions')
+        size, cnt = self.query_collection_stats(f'/{self.zone}/yoda/revisions')
         return size
 
     def get_trash_size(self):
-        size, cnt = self.query_collection_stats(f'/{ZONE}/trash')
+        size, cnt = self.query_collection_stats(f'/{self.zone}/trash')
         return size
 
     def get_groups(self):
@@ -116,15 +116,15 @@ class IrodsData():
 
     def get_stats(self, path):
         stats = {}
-        stats['size'], stats['count'] = self.query_collection_stats(full_path=f'/{ZONE}/home/{path}')
+        stats['size'], stats['count'] = self.query_collection_stats(full_path=f'/{self.zone}/home/{path}')
         if path.startswith('vault-'):
             stats['datasets'] = {}
-            coll = self.session.collections.get(f'/{ZONE}/home/{path}')
+            coll = self.session.collections.get(f'/{self.zone}/home/{path}')
             for col in coll.subcollections:  # datasets
                 dataset = col.name
                 stats['datasets'][dataset] = {}
                 stats['datasets'][dataset]['size'], stats['datasets'][dataset]['count'] = self.query_collection_stats(
-                    full_path=f'/{ZONE}/home/{path}/{dataset}%')
+                    full_path=f'/{self.zone}/home/{path}/{dataset}%')
                 try:
                     status = col.metadata.get_one('org_vault_status').value # won't be set on status "approved for publication"
                 except:
