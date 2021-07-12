@@ -10,12 +10,13 @@ from django.utils.timezone import now, make_aware
 DATADIR = '/home/peter/adminyoda/scripts/data'
 logger = logging.getLogger(__name__)
 
+
 # don't forget to 'sudo systemctl restart qcluster' when code here is changed
 
 def cleanup():
-    days=2
+    days = 2
     last_update = MiscStats.objects.order_by('collected').last().collected
-    cutoff=make_aware(datetime.combine(last_update, datetime.min.time())) - timedelta(days=days)
+    cutoff = make_aware(datetime.combine(last_update, datetime.min.time())) - timedelta(days=days)
     logger.info(f'Mark folders and datasets last updated before {cutoff} as deleted.')
     ResearchFolder.objects.filter(updated__lte=cutoff).update(deleted=now())
     VaultFolder.objects.filter(updated__lte=cutoff).update(deleted=now())
@@ -51,10 +52,9 @@ def process_irods_stats():
                         researchfolder.category = data['groups'][group]['category']
                         researchfolder.save()
 
-                        vaultfolder, created = VaultFolder.objects.get_or_create(research_folder=researchfolder)
-                        if created:
-                            vaultfolder.yoda_name = researchfolder.yoda_name.replace('research-', 'vault-', 1)
-                            vaultfolder.save()
+                        vaultname = researchfolder.yoda_name.replace('research-', 'vault-', 1)
+                        vaultfolder, created = VaultFolder.objects.update_or_create(research_folder=researchfolder,
+                                                                                    defaults={'yoda_name': vaultname})
 
                         for set in data['collections'][vaultfolder.yoda_name]['datasets']:
                             dataset_cnt += 1
