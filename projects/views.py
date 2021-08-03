@@ -83,7 +83,7 @@ def _get_rf(p, d):
 def project_detail(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
-        rf = ResearchFolder.objects.filter(project=project, deleted__isnull=True)
+        rf = ResearchFolder.objects.filter(project=project)
         data=CustomObject()
         data.project=project
         data.research_folders=[]
@@ -91,6 +91,10 @@ def project_detail(request, project_id):
         total_research_size=0
         total_vault_size=0
         for f in rf:
+            if f.deleted is not None:
+                deleted=True
+            else:
+                deleted=False
             rf_data = CustomObject()
             rf_data.datamanagers=[]
             rf_data.category=f.category
@@ -99,21 +103,29 @@ def project_detail(request, project_id):
             for dm in dms:
                 rf_data.datamanagers.append(f'{dm.user.firstname} {dm.user.lastname} ({dm.user.vunetid})')
             rf_data.research_name=f.yoda_name
-            s = ResearchStats.objects.filter(research_folder=f).latest('collected').size
+            if deleted:
+                rf_data.research_name=f'{rf_data.research_name} [deleted]'
+                s = 0
+            else:
+                s = ResearchStats.objects.filter(research_folder=f).latest('collected').size
             rf_data.research_size = convert_bytes(s)
             total_research_size += s
             vf = VaultFolder.objects.get(research_folder=f)
             rf_data.vault_name = vf.yoda_name
-            s = VaultStats.objects.filter(vault_folder=vf).latest('collected').size
+            if vf.deleted is not None:
+                rf_data.vault_name = f'{rf_data.vault_name} [deleted]'
+                s = 0
+            else:
+                s = VaultStats.objects.filter(vault_folder=vf).latest('collected').size
+                datasets = VaultDataset.objects.filter(vault_folder=vf)
+                rf_data.datasets=[]
+                for dataset in datasets:
+                    ds_data=CustomObject()
+                    ds_data.status=dataset.status
+                    ds_data.name=dataset.yoda_name
+                    rf_data.datasets.append(ds_data)
             rf_data.vault_size = convert_bytes(s)
             total_vault_size += s
-            datasets = VaultDataset.objects.filter(vault_folder=vf)
-            rf_data.datasets=[]
-            for dataset in datasets:
-                ds_data=CustomObject()
-                ds_data.status=dataset.status
-                ds_data.name=dataset.yoda_name
-                rf_data.datasets.append(ds_data)
             data.research_folders.append(rf_data)
         data.research_size=convert_bytes(total_research_size)
         data.vault_size=convert_bytes(total_vault_size)
