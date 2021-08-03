@@ -53,32 +53,8 @@ def process_irods_stats():
                         researchfolder.save()
 
                         vaultname = researchfolder.yoda_name.replace('research-', 'vault-', 1)
-                        vaultfolder, created = VaultFolder.objects.update_or_create(research_folder=researchfolder,
+                        VaultFolder.objects.update_or_create(research_folder=researchfolder,
                                                                                     defaults={'yoda_name': vaultname})
-
-                        for set in data['collections'][vaultfolder.yoda_name]['datasets']:
-                            dataset_cnt += 1
-                            dataset, created = VaultDataset.objects.get_or_create(yoda_name=set,
-                                                                                  vault_folder=vaultfolder)
-                            dataset.status = data['collections'][vaultfolder.yoda_name]['datasets'][set]['status']
-                            if dataset.status == 'PUBLISHED':
-                                published_cnt += 1
-                            dataset.save()
-
-                        researchsize = data['collections'][researchfolder.yoda_name]['size']
-                        ResearchStats.objects.update_or_create(
-                            research_folder=researchfolder,
-                            collected=filedate,
-                            defaults={'size': researchsize})
-                        research_size_total += researchsize
-
-                        vaultsize = data['collections'][vaultfolder.yoda_name]['size']
-                        VaultStats.objects.update_or_create(
-                            vault_folder=vaultfolder,
-                            collected=filedate,
-                            defaults={'size': vaultsize})
-                        vault_size_total += vaultsize
-
                     elif group.startswith('datamanager-'):
                         logger.info(f'processing datamanager group {group} in {file}')
                         for m in data['groups'][group]['members']:
@@ -88,6 +64,32 @@ def process_irods_stats():
                                 d, created = Datamanager.objects.get_or_create(user=u, yoda_name=group)
                                 d.category = data['groups'][group]['category']
                                 d.save()
+                for collection in data['collections']:
+                    print(f'process collection {collection}')
+                    if collection.startswith('research-'):
+                        researchfolder = ResearchFolder.objects.get(yoda_name=collection)
+                        researchsize = data['collections'][collection]['size']
+                        ResearchStats.objects.update_or_create(
+                            research_folder=researchfolder,
+                            collected=filedate,
+                            defaults={'size': researchsize})
+                        research_size_total += researchsize
+                    elif collection.startswith('vault-'):
+                        vaultfolder = VaultFolder.objects.get(yoda_name=collection)
+                        for set in data['collections'][collection]['datasets']:
+                            dataset_cnt += 1
+                            dataset, created = VaultDataset.objects.get_or_create(yoda_name=set,
+                                                                                  vault_folder=vaultfolder)
+                            dataset.status = data['collections'][vaultfolder.yoda_name]['datasets'][set]['status']
+                            if dataset.status == 'PUBLISHED':
+                                published_cnt += 1
+                            dataset.save()
+                        vaultsize = data['collections'][collection]['size']
+                        VaultStats.objects.update_or_create(
+                            vault_folder=vaultfolder,
+                            collected=filedate,
+                            defaults={'size': vaultsize})
+                        vault_size_total += vaultsize
 
                 MiscStats.objects.update_or_create(collected=filedate, defaults={
                     'size_total': data['misc']['size_total'],
@@ -108,5 +110,5 @@ def process_irods_stats():
 
     logger.info(f'{cnt} files processed')
 
-# process_irods_stats()
-# cleanup()
+process_irods_stats()
+#cleanup()
