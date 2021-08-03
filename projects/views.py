@@ -57,21 +57,24 @@ def projects_storage(request):
 
 def _get_rf(p, d):
     if p is None:
-        rf = ResearchFolder.objects.filter(project__isnull=True, deleted__isnull=True)
+        rf = ResearchFolder.objects.filter(project__isnull=True)
+        d.num_groups = ResearchFolder.objects.filter(project__isnull=True, deleted__isnull=True).count()
     else:
-        rf = ResearchFolder.objects.filter(project=p, deleted__isnull=True)
-    d.num_groups = rf.count()
+        rf = ResearchFolder.objects.filter(project=p)
+        d.num_groups = ResearchFolder.objects.filter(project=p, deleted__isnull=True).count()
     d.num_dataset = 0
     d.num_published = 0
     size = 0
     for f in rf:
-        size = size + ResearchStats.objects.filter(research_folder=f).latest('collected').size
+        if f.deleted is None:
+            size = size + ResearchStats.objects.filter(research_folder=f).latest('collected').size
         vf = VaultFolder.objects.get(research_folder=f)
-        size = size + VaultStats.objects.filter(vault_folder=vf).latest('collected').size
-        cnt = VaultDataset.objects.filter(vault_folder=vf).count()
-        pubcnt = VaultDataset.objects.filter(status='PUBLISHED', vault_folder=vf).count()
-        d.num_dataset = d.num_dataset + cnt
-        d.num_published = d.num_published + pubcnt
+        if vf.deleted is None:
+            size = size + VaultStats.objects.filter(vault_folder=vf).latest('collected').size
+            cnt = VaultDataset.objects.filter(vault_folder=vf).count()
+            pubcnt = VaultDataset.objects.filter(status='PUBLISHED', vault_folder=vf).count()
+            d.num_dataset = d.num_dataset + cnt
+            d.num_published = d.num_published + pubcnt
     d.size_warning=False
     if p is not None:
         if size > (p.storage_limit * GB):
