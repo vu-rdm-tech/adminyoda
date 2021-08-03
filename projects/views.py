@@ -165,7 +165,7 @@ def _monthly_vaultstats(vault_folder):
 
 def _research_stats(project_id):
     project = Project.objects.get(pk=project_id)
-    rf = ResearchFolder.objects.filter(project=project, deleted__isnull=True)
+    rf = ResearchFolder.objects.filter(project=project) # deleted folders should automatically disappear from the stats
     research_stats=[]
     vault_stats=[]
     for f in rf:
