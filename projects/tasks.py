@@ -110,5 +110,5 @@ def process_irods_stats():
 
     logger.info(f'{cnt} files processed')
 
-process_irods_stats()
+# process_irods_stats()
 #cleanup()
