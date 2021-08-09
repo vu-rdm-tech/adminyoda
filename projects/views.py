@@ -139,8 +139,8 @@ def project_detail(request, project_id):
 
 def _monthly_researchstats(research_folder):
     stats = []
+    last_size=0
     for year in range(start_year, end_year + 1):
-        last_size=0
         for month in range(1, 12):
             s = ResearchStats.objects.filter(research_folder=research_folder, collected__year=year, collected__month=month).order_by('collected').last()
             if s is not None:
@@ -148,13 +148,14 @@ def _monthly_researchstats(research_folder):
                 s.delta=s.size-last_size
                 last_size=s.size
                 stats.append(s)
-        stats[0].delta=0
+    if len(stats)>1:
+       stats[0].delta=0
     return stats
 
 def _monthly_vaultstats(vault_folder):
     stats = []
+    last_size=0
     for year in range(start_year, end_year + 1):
-        last_size=0
         for month in range(1, 13):
             s = VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year, collected__month=month).order_by('collected').last()
             if s is not None:
@@ -163,6 +164,7 @@ def _monthly_vaultstats(vault_folder):
                 last_size=s.size
                 #s.label = s.collected
                 stats.append(s)
+    if len(stats)>1:
         stats[0].delta=0
     return stats
 
