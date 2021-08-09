@@ -145,13 +145,35 @@ def project_detail(request, project_id):
     return render(request, 'projects/details.html', context={'data': data})
 
 
-def _monthly_researchstats(research_folder):
+def _vaultstats_month_lte(vault_folder, year, month):
+    return VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year,
+                                     collected__month__lte=month).order_by('collected').last()
+
+
+def _researchstats_month_lte(research_folder, year, month):
+    return VaultStats.objects.filter(research_folder=research_folder, collected__year=year,
+                                     collected__month__lte=month).order_by('collected').last()
+
+
+def _vaultstats_month(vault_folder, year, month):
+    return VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year,
+                                     collected__month=month).order_by('collected').last()
+
+
+def _researchstats_month(research_folder, year, month):
+    return ResearchStats.objects.filter(research_folder=research_folder, collected__year=year,
+                                        collected__month=month).order_by('collected').last()
+
+
+def _monthly_stats(folder, type):
     stats = {}
     last_size = 0
     for year in range(start_year, end_year + 1):
         for month in range(1, 12):
-            s = ResearchStats.objects.filter(research_folder=research_folder, collected__year=year,
-                                             collected__month=month).order_by('collected').last()
+            if type == 'research':
+                s = _researchstats_month(folder, year, month)
+            elif type == 'vault':
+                s = _vaultstats_month(folder, year, month)
             if s is not None:
                 size = s.size
                 label = f'{year}-{month}'
@@ -163,21 +185,25 @@ def _monthly_researchstats(research_folder):
     return stats
 
 
-def _monthly_vaultstats(vault_folder):
-    stats = {}
-    last_size = 0
+def _quarterly_stats(folder, type):
+    quarters = [3, 6, 9, 12]
+    stats = []
     for year in range(start_year, end_year + 1):
-        for month in range(1, 13):
-            s = VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year,
-                                          collected__month=month).order_by('collected').last()
+        q = 1
+        for month in quarters:
+            if type == 'research':
+                s = _researchstats_month_lte(folder, year, month)
+            elif type == 'vault':
+                s = _vaultstats_month_lte(folder, year, month)
             if s is not None:
                 size = s.size
-                label = f'{year}-{month}'
+                label = f'Q{q}-{year}'
                 stats[label] = {}
                 delta = size - last_size
                 last_size = size
                 stats[label]['size'] = size
                 stats[label]['delta'] = delta
+            q += 1
     return stats
 
 
@@ -187,9 +213,9 @@ def _research_stats(project_id):
     research_stats = {}
     vault_stats = {}
     for f in rf:
-        rstats = _monthly_researchstats(f)
+        rstats = _monthly_stats(f, 'research')
         vf = VaultFolder.objects.get(research_folder=f)
-        vstats = _monthly_vaultstats(vf)
+        vstats = _monthly_stats(vf, 'vault')
         i = 0
         # Now merge these on label
         for label in rstats:
