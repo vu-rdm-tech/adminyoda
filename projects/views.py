@@ -151,9 +151,8 @@ def _vaultstats_month_lte(vault_folder, year, month):
 
 
 def _researchstats_month_lte(research_folder, year, month):
-    return VaultStats.objects.filter(research_folder=research_folder, collected__year=year,
-                                     collected__month__lte=month).order_by('collected').last()
-
+    return ResearchStats.objects.filter(research_folder=research_folder, collected__year=year,
+                                        collected__month__lte=month).order_by('collected').last()
 
 def _vaultstats_month(vault_folder, year, month):
     return VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year,
@@ -187,7 +186,8 @@ def _monthly_stats(folder, type):
 
 def _quarterly_stats(folder, type):
     quarters = [3, 6, 9, 12]
-    stats = []
+    stats = {}
+    last_size = 0
     for year in range(start_year, end_year + 1):
         q = 1
         for month in quarters:
@@ -213,9 +213,9 @@ def _research_stats(project_id):
     research_stats = {}
     vault_stats = {}
     for f in rf:
-        rstats = _monthly_stats(f, 'research')
+        rstats = _quarterly_stats(f, 'research')
         vf = VaultFolder.objects.get(research_folder=f)
-        vstats = _monthly_stats(vf, 'vault')
+        vstats = _quarterly_stats(vf, 'vault')
         i = 0
         # Now merge these on label
         for label in rstats:

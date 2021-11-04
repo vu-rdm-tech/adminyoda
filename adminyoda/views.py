@@ -82,7 +82,7 @@ def size_chart_json(request):
     research = []
     vault = []
     div = (1024 * 1024 * 1024)
-    stats = _monthly_miscstats()
+    stats = _quarterly_miscstats()
     for s in stats:
         labels.append(s.label)
         research.append(round(s.size_research / div, 2))
@@ -109,7 +109,7 @@ def size_chart_json(request):
 def project_chart_json(request):
     labels = []
     data = []
-    miscstats = _monthly_miscstats()
+    miscstats = _quarterly_miscstats()
     for s in miscstats:
         labels.append(s.label)
         data.append(s.projects_total)
@@ -127,7 +127,7 @@ def user_chart_json(request):
     labels = []
     internal = []
     external = []
-    miscstats = _monthly_miscstats()
+    miscstats = _quarterly_miscstats()
     for s in miscstats:
         labels.append(s.label)
         internal.append(s.internal_users_total)
@@ -158,7 +158,7 @@ def storage_chart_json(request):
     revisions = []
     trash = []
     div = (1024 * 1024 * 1024)
-    stats = _monthly_miscstats()
+    stats = _quarterly_miscstats()
     # stats = _get_quarterly_miscstats()
     for s in stats:
         labels.append(s.label)
