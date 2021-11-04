@@ -186,7 +186,7 @@ def _monthly_stats(folder, type):
 
 def _quarterly_stats(folder, type):
     quarters = [3, 6, 9, 12]
-    stats = {}
+    stats = []
     last_size = 0
     for year in range(start_year, end_year + 1):
         q = 1
@@ -196,13 +196,10 @@ def _quarterly_stats(folder, type):
             elif type == 'vault':
                 s = _vaultstats_month_lte(folder, year, month)
             if s is not None:
-                size = s.size
-                label = f'Q{q}-{year}'
-                stats[label] = {}
-                delta = size - last_size
-                last_size = size
-                stats[label]['size'] = size
-                stats[label]['delta'] = delta
+                s.label = f'Q{q}-{year}'
+                s.delta = s.size - last_size
+                last_size = s.size
+                stats.append(s)
             q += 1
     return stats
 
@@ -212,38 +209,43 @@ def _research_stats(project_id):
     rf = ResearchFolder.objects.filter(project=project)  # deleted folders should automatically disappear from the stats
     research_stats = {}
     vault_stats = {}
+    labels = []
     for f in rf:
         rstats = _quarterly_stats(f, 'research')
         vf = VaultFolder.objects.get(research_folder=f)
         vstats = _quarterly_stats(vf, 'vault')
         i = 0
         # Now merge these on label
-        for label in rstats:
+        for rstat in rstats:
+            label=rstat.label
+            if label not in labels:
+                labels.append(label)
             if label not in research_stats:
                 research_stats[label] = {}
                 research_stats[label]['size'] = 0
                 research_stats[label]['delta'] = 0
-            research_stats[label]['size'] += rstats[label]['size']
-            research_stats[label]['delta'] += rstats[label]['delta']
-        for label in vstats:
+            research_stats[label]['size'] += rstat.size
+            research_stats[label]['delta'] += rstat.delta
+        for vstat in vstats:
+            label=vstat.label
+            if label not in labels:
+                labels.append(label)
             if label not in vault_stats:
                 vault_stats[label] = {}
                 vault_stats[label]['size'] = 0
                 vault_stats[label]['delta'] = 0
-            vault_stats[label]['size'] += vstats[label]['size']
-            vault_stats[label]['delta'] += vstats[label]['delta']
-    return research_stats, vault_stats
+            vault_stats[label]['size'] += vstat.size
+            vault_stats[label]['delta'] += vstat.delta
+    return sorted(labels), research_stats, vault_stats
 
 
 def project_size_chart_json(request, project_id):
-    labels = []
     research = []
     vault = []
     div = (1024 * 1024 * 1024)
-    research_stats, vault_stats = _research_stats(project_id)
+    labels, research_stats, vault_stats = _research_stats(project_id)
     i = 0
-    for label in research_stats:
-        labels.append(label)
+    for label in labels:
         research.append(round(research_stats[label]['size'] / div, 2))
         vault.append(round(vault_stats[label]['size'] / div, 2))
         i += 1
@@ -267,14 +269,12 @@ def project_size_chart_json(request, project_id):
 
 
 def project_delta_chart_json(request, project_id):
-    labels = []
     research = []
     vault = []
     div = (1024 * 1024 * 1024)
-    research_stats, vault_stats = _research_stats(project_id)
+    labels, research_stats, vault_stats = _research_stats(project_id)
     i = 0
-    for label in research_stats:
-        labels.append(label)
+    for label in labels:
         research.append(round(research_stats[label]['delta'] / div, 2))
         vault.append(round(vault_stats[label]['delta'] / div, 2))
         i += 1
