@@ -26,7 +26,7 @@ def _convert_bytes(num):
 
 # Create your views here.
 def index(request):
-    num_projects = Project.objects.all().count
+    num_projects = Project.objects.filter(delete_date__isnull=True).all().count
     requested_size = Project.objects.aggregate(total=Sum('requested_size'))['total'] / 1024  # TB
     miscstats = MiscStats.objects.latest('collected')
     context = {

@@ -4,7 +4,7 @@ import shutil
 from datetime import datetime, timedelta
 import logging
 from projects.models import ResearchFolder, VaultFolder, VaultDataset, VaultStats, ResearchStats, Person, Datamanager, \
-    MiscStats
+    MiscStats, Project
 from django.utils.timezone import now, make_aware
 
 DATADIR = '/home/peter/adminyoda/scripts/data'
@@ -103,6 +103,7 @@ def process_irods_stats():
                     'groups_total': researchgroup_cnt,
                     'datasets_total': dataset_cnt,
                     'published_total': published_cnt,
+                    'projects_total': Project.objects.filter(delete_date__isnull=True).all().count,
                 })
 
             logger.info(f'move {file} to archived')
