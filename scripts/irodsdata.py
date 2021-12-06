@@ -132,4 +132,9 @@ class IrodsData():
                     stats['datasets'][dataset]['landingPageUrl'] = col.metadata.get_one(
                         'org_publication_landingPageUrl').value
                 stats['datasets'][dataset]['status'] = status
+                try:
+                    retention_period = col.metadata.get_one('Retention_Period').value
+                except:
+                    retention_period = ''
+                stats['datasets'][dataset]['retention_period'] = retention_period
         return stats
