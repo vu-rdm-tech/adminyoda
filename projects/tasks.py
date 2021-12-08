@@ -81,6 +81,7 @@ def process_irods_stats():
                             dataset, created = VaultDataset.objects.get_or_create(yoda_name=set,
                                                                                   vault_folder=vaultfolder)
                             dataset.status = data['collections'][vaultfolder.yoda_name]['datasets'][set]['status']
+                            dataset.retention = int(data['collections'][vaultfolder.yoda_name]['datasets'][set]['retention_period'])
                             if dataset.status == 'PUBLISHED':
                                 published_cnt += 1
                             dataset.save()
