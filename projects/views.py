@@ -145,14 +145,14 @@ def project_detail(request, project_id):
     return render(request, 'projects/details.html', context={'data': data})
 
 
-def _vaultstats_month_lte(vault_folder, year, month):
+def _vaultstats_quarterly(vault_folder, year, month):
     return VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year,
-                                     collected__month__lte=month).order_by('collected').last()
+                                     collected__month__lte=month, collected__month__gt=month-3).order_by('collected').last()
 
 
-def _researchstats_month_lte(research_folder, year, month):
+def _researchstats_quarterly(research_folder, year, month):
     return ResearchStats.objects.filter(research_folder=research_folder, collected__year=year,
-                                        collected__month__lte=month).order_by('collected').last()
+                                        collected__month__lte=month, collected__month__gt=month-3).order_by('collected').last()
 
 def _vaultstats_month(vault_folder, year, month):
     return VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year,
@@ -192,9 +192,9 @@ def _quarterly_stats(folder, type):
         q = 1
         for month in quarters:
             if type == 'research':
-                s = _researchstats_month_lte(folder, year, month)
+                s = _researchstats_quarterly(folder, year, month)
             elif type == 'vault':
-                s = _vaultstats_month_lte(folder, year, month)
+                s = _vaultstats_quarterly(folder, year, month)
             if s is not None:
                 s.label = f'Q{q}-{year}'
                 s.delta = s.size - last_size
