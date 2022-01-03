@@ -135,6 +135,6 @@ class IrodsData():
                 try:
                     retention_period = col.metadata.get_one('Retention_Period').value
                 except:
-                    retention_period = ''
+                    retention_period = '0'
                 stats['datasets'][dataset]['retention_period'] = retention_period
         return stats
