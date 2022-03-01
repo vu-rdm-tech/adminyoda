@@ -1,11 +1,4 @@
 {% extends "base.html" %}
-{% load django_bootstrap_breadcrumbs %}
-
-{% block breadcrumbs %}
-    {% breadcrumb "Home" "/" %}
-    {% breadcrumb "Projects" "/projects" %}
-    {% breadcrumb data.project.title "project_index" %}
-{% endblock %}
 
 {% block content %}
 

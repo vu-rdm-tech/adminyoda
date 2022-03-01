@@ -28,7 +28,7 @@ SECRET_KEY = '******'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['adminyoda.labs.vu.nl', '130.37.194.20']
+ALLOWED_HOSTS = ['adminyoda.labs.vu.nl', 'web']
 
 
 # Application definition
@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_q',
     'django_tables2',
-    'django_bootstrap_breadcrumbs',
+    'view_breadcrumbs',
 ]
 
 MIDDLEWARE = [

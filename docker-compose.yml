@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  adminyoda-app:
+    container_name: adminyoda-app
+    #restart: always
+    build:
+      context: .
+      args:
+        - APP_USER_UID=${USER_UID}
+        - APP_USER_GID=${USER_GID}
+    user: ${USER_UID}:${USER_GID}
+    depends_on:
+      - adminyoda-db
+      - adminyoda-nginx
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PW: ${DB_PW}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DATADIR: ${DATADIR}
+      #SITE_NAME: adminyoda.labs.vu.nl
+      SITE_NAME: 127.0.0.1
+      SECRET: ${SECRET}
+    volumes:
+      #- /mnt/c/Users/peter/RubymineProjects/bnpp/app:/usr/src/app/app
+      - /docker/adminyoda/log:/usr/app/log
+      - /mnt/c/Users/peter/PycharmProjects/adminyoda/scripts/data:/data:rw
+
+  adminyoda-db:
+    container_name: ${DB_HOST}
+    image: postgres:14
+    #restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PW}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - /docker/adminyoda/db:/var/lib/postgresql/data
+
+  adminyoda-nginx:
+    image: nginx:latest
+    container_name: adminyoda-nginx
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./static:/static:ro  # for syncing with django source code
+      - ./nginx_conf:/etc/nginx/conf.d:ro
+
