@@ -17,13 +17,11 @@ services:
       DB_PW: ${DB_PW}
       DB_HOST: ${DB_HOST}
       DB_NAME: ${DB_NAME}
-      DATADIR: /data
-      SITE_NAME: adminyoda.labs.vu.nl
+      DATADIR: ${DATADIR}
+      SITE_NAME: 127.0.0.1
       SECRET: ${SECRET}
-    command: /usr/src/app/startup.sh #production web server
-    #command: sh -c "gunicorn adminyoda.wsgi:application --bind 0.0.0.0:8000" #production web server
     volumes:
-      #- /mnt/c/Users/peter/RubymineProjects/bnpp/app:/usr/src/app/app
+      - .:/usr/src/app
       - /docker/adminyoda/log:/usr/app/log
       - /mnt/c/Users/peter/PycharmProjects/adminyoda/scripts/data:/data:rw
 
@@ -42,8 +40,7 @@ services:
   adminyoda-nginx:
     image: nginx:latest
     container_name: adminyoda-nginx
-    depends_on:
-      - adminyoda-app
+    depends_on: adminyoda-app
     ports:
       - "8001:8000"
     volumes:
