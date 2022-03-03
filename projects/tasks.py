@@ -7,7 +7,7 @@ from projects.models import ResearchFolder, VaultFolder, VaultDataset, VaultStat
     MiscStats, Project
 from django.utils.timezone import now, make_aware
 
-DATADIR = '/home/peter/adminyoda/scripts/data'
+DATADIR=os.environ.get('DATADIR')
 logger = logging.getLogger(__name__)
 
 
