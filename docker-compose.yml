@@ -45,7 +45,7 @@ services:
     command: python manage.py qcluster
     volumes:
       - /docker/adminyoda/log:/usr/app/log
-      - /mnt/c/Users/peter/PycharmProjects/adminyoda/scripts/data:/data:rw
+      - ${DATASRC}:/data:rw
 
   adminyoda-db:
     container_name: ${DB_HOST}
