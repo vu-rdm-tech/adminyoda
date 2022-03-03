@@ -66,9 +66,9 @@ services:
     depends_on:
       - adminyoda-web
     ports:
-      - "8001:8000"
+      - "443:443"
+      - "80:80"
     volumes:
       - ./static:/static:ro  # for syncing with django source code
       - /docker/adminyoda/nginx_conf:/etc/nginx/conf.d:ro
-      - /acme:/home/acme:ro
-
+      - /home/acme:/acme:ro
