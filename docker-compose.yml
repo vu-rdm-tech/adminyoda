@@ -12,6 +12,7 @@ services:
     user: ${USER_UID}:${USER_GID}
     depends_on:
       - adminyoda-db
+      - nginx
     environment:
       DB_USER: ${DB_USER}
       DB_PW: ${DB_PW}
@@ -59,12 +60,10 @@ services:
     volumes:
       - /docker/adminyoda/db:/var/lib/postgresql/data
 
-  adminyoda-nginx:
+  nginx:
     image: nginx:latest
     restart: always
-    container_name: adminyoda-nginx
-    depends_on:
-      - adminyoda-web
+    container_name: nginx
     ports:
       - "443:443"
       - "80:80"
