@@ -3,7 +3,7 @@ version: '3'
 services:
   adminyoda-web:
     container_name: adminyoda-web
-    #restart: always
+    restart: always
     build:
       context: .
       args:
@@ -25,7 +25,7 @@ services:
 
   adminyoda-task:
     container_name: adminyoda-task
-    #restart: always
+    restart: always
     build:
       context: .
       args:
@@ -50,7 +50,7 @@ services:
   adminyoda-db:
     container_name: ${DB_HOST}
     image: postgres:14
-    #restart: always
+    restart: always
     environment:
       POSTGRES_PASSWORD: ${DB_PW}
       POSTGRES_USER: ${DB_USER}
@@ -61,6 +61,7 @@ services:
 
   adminyoda-nginx:
     image: nginx:latest
+    restart: always
     container_name: adminyoda-nginx
     depends_on:
       - adminyoda-web
