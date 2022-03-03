@@ -68,5 +68,6 @@ services:
       - "8001:8000"
     volumes:
       - ./static:/static:ro  # for syncing with django source code
-      - ./nginx_conf:/etc/nginx/conf.d:ro
+      - /docker/adminyoda/nginx_conf:/etc/nginx/conf.d:ro
+      - /acme:/home/acme:ro
 
