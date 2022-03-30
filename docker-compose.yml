@@ -1,0 +1,73 @@
+version: '3'
+
+services:
+  adminyoda-web:
+    container_name: adminyoda-web
+    restart: always
+    build:
+      context: .
+      args:
+        - APP_USER_UID=${USER_UID}
+        - APP_USER_GID=${USER_GID}
+    user: ${USER_UID}:${USER_GID}
+    depends_on:
+      - adminyoda-db
+      - nginx
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PW: ${DB_PW}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      SITE_NAME: adminyoda.labs.vu.nl
+      SECRET: ${SECRET}
+    command: gunicorn adminyoda.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - /docker/adminyoda/log:/usr/app/log
+
+  adminyoda-task:
+    container_name: adminyoda-task
+    restart: always
+    build:
+      context: .
+      args:
+        - APP_USER_UID=${USER_UID}
+        - APP_USER_GID=${USER_GID}
+    user: ${USER_UID}:${USER_GID}
+    depends_on:
+      - adminyoda-db
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PW: ${DB_PW}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DATADIR: /data
+      SITE_NAME: adminyoda.labs.vu.nl
+      SECRET: ${SECRET}
+    command: python manage.py qcluster
+    volumes:
+      - /docker/adminyoda/log:/usr/app/log
+      - ${DATASRC}:/data:rw
+
+  adminyoda-db:
+    container_name: ${DB_HOST}
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PW}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - /docker/adminyoda/db:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx:latest
+    restart: always
+    container_name: nginx
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./static:/static:ro  # for syncing with django source code
+      - /docker/adminyoda/nginx_conf:/etc/nginx/conf.d:ro
+      - /home/acme:/acme:ro

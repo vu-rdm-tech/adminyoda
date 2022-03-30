@@ -1,0 +1,7 @@
+/scripts/
+/scripts/**/*
+/adminyoda/log/
+/venv/
+/venv/**/*
+/.idea/
+/.idea/**/*
