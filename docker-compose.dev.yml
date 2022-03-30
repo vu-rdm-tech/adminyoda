@@ -24,7 +24,6 @@ services:
     volumes:
       - .:/usr/src/app
       - /docker/adminyoda/log:/usr/app/log
-    command: gunicorn adminyoda.wsgi:application --bind 0.0.0.0:8000
 
   adminyoda-task:
     container_name: adminyoda-task
