@@ -196,7 +196,7 @@ def _quarterly_stats(folder, type):
             elif type == 'vault':
                 s = _vaultstats_quarterly(folder, year, month)
             if s is not None:
-                s.label = f'Q{q}-{year}'
+                s.label = f'{year}-Q{q}'
                 s.delta = s.size - last_size
                 last_size = s.size
                 stats.append(s)

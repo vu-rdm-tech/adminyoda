@@ -51,7 +51,7 @@ def _quarterly_miscstats():
         for month in quarters:
             s = MiscStats.objects.filter(collected__year=year, collected__month__lte=month, collected__month__gt=month-3).order_by('collected').last()
             if s is not None:
-                 s.label = f'Q{q}-{year}'
+                 s.label = f'{year}-Q{q}'
                  stats.append(s)
             q += 1
     return stats
