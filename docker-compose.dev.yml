@@ -1,8 +1,8 @@
 version: '3'
 
 services:
-  adminyoda-app:
-    container_name: adminyoda-app
+  adminyoda-web:
+    container_name: adminyoda-web
     #restart: always
     build:
       context: .
@@ -17,13 +17,38 @@ services:
       DB_PW: ${DB_PW}
       DB_HOST: ${DB_HOST}
       DB_NAME: ${DB_NAME}
-      DATADIR: ${DATADIR}
       SITE_NAME: 127.0.0.1
       SECRET: ${SECRET}
+    ports:
+      - "8000:8000"
     volumes:
       - .:/usr/src/app
       - /docker/adminyoda/log:/usr/app/log
-      - /mnt/c/Users/peter/PycharmProjects/adminyoda/scripts/data:/data:rw
+    command: gunicorn adminyoda.wsgi:application --bind 0.0.0.0:8000
+
+  adminyoda-task:
+    container_name: adminyoda-task
+    restart: always
+    build:
+      context: .
+      args:
+        - APP_USER_UID=${USER_UID}
+        - APP_USER_GID=${USER_GID}
+    user: ${USER_UID}:${USER_GID}
+    depends_on:
+      - adminyoda-db
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PW: ${DB_PW}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DATADIR: /data
+      SITE_NAME: adminyoda.labs.vu.nl
+      SECRET: ${SECRET}
+    command: python manage.py qcluster
+    volumes:
+      - /docker/adminyoda/log:/usr/app/log
+      - ${DATASRC}:/data:rw
 
   adminyoda-db:
     container_name: ${DB_HOST}
@@ -37,13 +62,12 @@ services:
     volumes:
       - /docker/adminyoda/db:/var/lib/postgresql/data
 
-  adminyoda-nginx:
+  nginx:
     image: nginx:latest
-    container_name: adminyoda-nginx
-    depends_on: adminyoda-app
+    restart: always
+    container_name: nginx
     ports:
-      - "8001:8000"
+      - "8080:80"
     volumes:
       - ./static:/static:ro  # for syncing with django source code
       - ./nginx_conf:/etc/nginx/conf.d:ro
-
