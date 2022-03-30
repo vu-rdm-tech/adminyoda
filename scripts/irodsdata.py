@@ -5,6 +5,7 @@ from setup_session import setup_session
 
 logger = logging.getLogger('irods_tasks')
 
+
 def handle_exception():
     logger.warning('script failed with an error')
     raise SystemExit(0)
@@ -36,7 +37,7 @@ class IrodsData():
         self.data['misc']['revision_size'] = self.get_revision_size()
         self.data['misc']['trash_size'] = self.get_trash_size()
 
-        research_group_members=[]
+        research_group_members = []
         for g in self.data['groups']:
             research_group_members = list(set(research_group_members + self.data['groups'][g]['members']))
             research_group_members = list(set(research_group_members + self.data['groups'][g]['read_members']))
@@ -50,14 +51,18 @@ class IrodsData():
         self.data['misc']['internal_users_total'] = internal
         self.data['misc']['external_users_total'] = external
         self.data['misc']['users_total'] = internal + external
+        self._close_session()
         return self.data
 
+    def _close_session(self):
+        self.session.cleanup()
+        self.session = None
 
     def _get_session(self):
         try:
             logger.info('setup irods session')
             self.session = setup_session()
-            self.get_home_collections() # try once to see if we are logged in
+            self.get_home_collections()  # try once to see if we are logged in
         except:
             logger.error('could not get collections and groups, probably an authentication error')
             handle_exception()
@@ -125,9 +130,10 @@ class IrodsData():
                 stats['datasets'][dataset]['size'], stats['datasets'][dataset]['count'] = self.query_collection_stats(
                     full_path=f'/{self.session.zone}/home/{path}/{dataset}%')
                 try:
-                    status = col.metadata.get_one('org_vault_status').value # won't be set on status "approved for publication"
+                    status = col.metadata.get_one(
+                        'org_vault_status').value  # won't be set on status "approved for publication"
                 except:
-                    status=''
+                    status = ''
                 if status in ['PUBLISHED', 'DEPUBLISHED']:
                     stats['datasets'][dataset]['landingPageUrl'] = col.metadata.get_one(
                         'org_publication_landingPageUrl').value
