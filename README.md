@@ -4,8 +4,9 @@ A simple implementation of a "shadow database" to store administrative informati
 
 To set up a dev environment:
 - rename .env.template to .env and set suitable values
-- startup with docker
+- Build and startup with docker
 ```
+docker-compose -f docker-compose.dev.yml build
 docker-compose -f docker-compose.dev.yml up
 ```
 - Open http://localhost:8080
