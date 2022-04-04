@@ -12,11 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='vaultdataset',
-            name='retention',
-            field=models.IntegerField(default=10),
-        ),
-        migrations.AddField(
-            model_name='vaultdataset',
             name='size',
             field=models.BigIntegerField(default=0),
             preserve_default=False,
