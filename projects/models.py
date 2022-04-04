@@ -87,7 +87,8 @@ class VaultDataset(models.Model):
     yoda_name = models.CharField(max_length=255)
     vault_folder = models.ForeignKey(VaultFolder, on_delete=models.CASCADE)
     status = models.CharField(max_length=30, blank=True, null=True)
-    retention = models.IntegerField()
+    retention = models.IntegerField(default=10)
+    size = models.BigIntegerField()
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     deleted = models.DateTimeField(blank=True, null=True)  # just in case
