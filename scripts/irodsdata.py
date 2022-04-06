@@ -26,6 +26,11 @@ class IrodsData():
             self.data['collections'][path] = self.get_stats(path=path)
             total_size = total_size + self.data['collections'][path]['size']
 
+        self.data['revision_collections'] = self.get_revision_collections()
+        for path in self.data['revision_collections']:
+            self.data['revisions_collections'][path] = self.get_stats(path=path, root='yoda/revisions')
+            #total_size = total_size + self.data['collections'][path]['size']
+
         self.data['misc'] = {}
         self.data['misc']['size_total'] = total_size
 
@@ -75,6 +80,13 @@ class IrodsData():
             collections[col.name] = {}
         return collections
 
+    def get_revision_collections(self):
+        collections = {}
+        coll = self.session.collections.get(f'/{self.session.zone}/yoda/revisions')
+        for col in coll.subcollections:
+            collections[col.name] = {}
+        return collections
+
     def get_member_count(self, group_name):
         internal = 0
         external = 0
@@ -118,17 +130,17 @@ class IrodsData():
         if size is None: size = 0
         return size, result[DataObject.id]
 
-    def get_stats(self, path):
+    def get_stats(self, path, root='home'):
         stats = {}
-        stats['size'], stats['count'] = self.query_collection_stats(full_path=f'/{self.session.zone}/home/{path}')
+        stats['size'], stats['count'] = self.query_collection_stats(full_path=f'/{self.session.zone}/{root}/{path}')
         if path.startswith('vault-'):
             stats['datasets'] = {}
-            coll = self.session.collections.get(f'/{self.session.zone}/home/{path}')
+            coll = self.session.collections.get(f'/{self.session.zone}/{root}/{path}')
             for col in coll.subcollections:  # datasets
                 dataset = col.name
                 stats['datasets'][dataset] = {}
                 stats['datasets'][dataset]['size'], stats['datasets'][dataset]['count'] = self.query_collection_stats(
-                    full_path=f'/{self.session.zone}/home/{path}/{dataset}%')
+                    full_path=f'/{self.session.zone}/{root}/{path}/{dataset}%')
                 try:
                     status = col.metadata.get_one(
                         'org_vault_status').value  # won't be set on status "approved for publication"
