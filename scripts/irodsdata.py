@@ -28,7 +28,7 @@ class IrodsData():
 
         self.data['revision_collections'] = self.get_revision_collections()
         for path in self.data['revision_collections']:
-            self.data['revisions_collections'][path] = self.get_stats(path=path, root='yoda/revisions')
+            self.data['revision_collections'][path] = self.get_stats(path=path, root='yoda/revisions')
             #total_size = total_size + self.data['collections'][path]['size']
 
         self.data['misc'] = {}
