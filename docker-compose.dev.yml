@@ -65,6 +65,8 @@ services:
     image: nginx:latest
     restart: always
     container_name: nginx
+    depends_on:
+      - adminyoda-web
     ports:
       - "8080:80"
     volumes:
