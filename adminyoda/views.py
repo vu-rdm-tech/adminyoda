@@ -31,7 +31,7 @@ def index(request):
     miscstats = MiscStats.objects.latest('collected')
     context = {
         'num_projects': num_projects,
-        'total_size': _convert_bytes(miscstats.size_total),
+        'total_size': _convert_bytes(miscstats.size_total + miscstats.revision_size),
         'requested_size': round(requested_size, 1),
         'num_users': miscstats.users_total,
         'num_datasets': VaultDataset.objects.filter(deleted__isnull=True).all().count,
