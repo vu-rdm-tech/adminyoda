@@ -1,3 +1,4 @@
+import math
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from .models import Project, MiscStats, VaultDataset, ResearchFolder, Department, VaultFolder, VaultStats, \
@@ -19,7 +20,7 @@ class CustomObject():
     pass
 
 
-def convert_bytes(num):
+def friendly_size(num):
     """
     this function will convert bytes to MB.... GB... etc
     """
@@ -28,6 +29,9 @@ def convert_bytes(num):
             return "%3.1f %s" % (num, x)
         num /= 1024.0
 
+def calculate_blocks(bytes, block_size=250):
+    gigabytes = bytes/(1024*1024*1024)
+    return int(math.ceil(gigabytes/block_size))
 
 # Create your views here.
 def projects_index(request):
@@ -39,8 +43,8 @@ def projects_index(request):
         d.title = p.title
         d.department = p.department.name
         d.faculty = p.department.faculty
-        d.requested_size = convert_bytes(p.requested_size * GB)
-        d.limit = convert_bytes(p.storage_limit * GB)
+        d.requested_size = friendly_size(p.requested_size * GB)
+        d.limit = friendly_size(p.storage_limit * GB)
         d = _get_rf(p, d)
         data.append(d)
     d = CustomObject()
@@ -85,12 +89,11 @@ def _get_rf(p, d):
     if p is not None:
         if size > (p.storage_limit * GB):
             d.size_warning = True
-    d.size = convert_bytes(size)
+    d.size = friendly_size(size)
 
     return d
 
-
-def project_detail(request, project_id):
+def project_detail_data(project_id):
     try:
         project = Project.objects.get(pk=project_id)
         rf = ResearchFolder.objects.filter(project=project)
@@ -118,28 +121,38 @@ def project_detail(request, project_id):
                 s = 0
             else:
                 s = ResearchStats.objects.filter(research_folder=f).latest('collected').size
-            rf_data.research_size = convert_bytes(s)
+            rf_data.research_size = friendly_size(s)
             total_research_size += s
             vf = VaultFolder.objects.get(research_folder=f)
             rf_data.vault_name = vf.yoda_name
+            rf_data.datasets = []
             if vf.deleted is not None:
                 rf_data.vault_name = f'{rf_data.vault_name} [deleted]'
                 s = 0
             else:
                 s = VaultStats.objects.filter(vault_folder=vf).latest('collected').size
                 datasets = VaultDataset.objects.filter(vault_folder=vf)
-                rf_data.datasets = []
                 for dataset in datasets:
-                    ds_data = CustomObject()
-                    ds_data.status = dataset.status
+                    ds_data = dataset
                     ds_data.name = dataset.yoda_name
+                    ds_data.csize = friendly_size(dataset.size)
                     rf_data.datasets.append(ds_data)
-            rf_data.vault_size = convert_bytes(s)
+            rf_data.vault_size = friendly_size(s)
             total_vault_size += s
             data.research_folders.append(rf_data)
-        data.research_size = convert_bytes(total_research_size)
-        data.vault_size = convert_bytes(total_vault_size)
+        data.research_size = friendly_size(total_research_size)
+        data.research_block_size = '2TB'
+        data.research_blocks = calculate_blocks(total_research_size, 2048)
+        data.vault_size = friendly_size(total_vault_size)
+        data.vault_block_size = '250GB'
+        data.vault_blocks = calculate_blocks(total_vault_size, 250)
     except Project.DoesNotExist:
+        return None
+    return data
+
+def project_detail(request, project_id):
+    data = project_detail_data(project_id)
+    if data==None:
         raise Http404("Project does not exist")
 
     return render(request, 'projects/details.html', context={'data': data})
