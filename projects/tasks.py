@@ -65,14 +65,18 @@ def process_irods_stats():
                                 d.category = data['groups'][group]['category']
                                 d.save()
                 for collection in data['collections']:
-                    print(f'process collection {collection}')
+                    logger.info(f'process collection {collection}')
                     if collection.startswith('research-'):
                         researchfolder = ResearchFolder.objects.get(yoda_name=collection)
                         researchsize = data['collections'][collection]['size']
+                        try:
+                            revisionsize = data['revision_collections'][collection]['size']
+                        except:
+                            revisionsize = 0
                         ResearchStats.objects.update_or_create(
                             research_folder=researchfolder,
                             collected=filedate,
-                            defaults={'size': researchsize})
+                            defaults={'size': researchsize, 'revision_size': revisionsize})
                         research_size_total += researchsize
                     elif collection.startswith('vault-'):
                         vaultfolder = VaultFolder.objects.get(yoda_name=collection)
@@ -92,7 +96,6 @@ def process_irods_stats():
                             collected=filedate,
                             defaults={'size': vaultsize})
                         vault_size_total += vaultsize
-
                 MiscStats.objects.update_or_create(collected=filedate, defaults={
                     'size_total': data['misc']['size_total'],
                     'size_research': research_size_total,
