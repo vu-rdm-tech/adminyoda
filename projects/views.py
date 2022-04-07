@@ -77,7 +77,8 @@ def _get_rf(p, d):
     size = 0
     for f in rf:
         if f.deleted is None:
-            size = size + ResearchStats.objects.filter(research_folder=f).latest('collected').size
+            stat = ResearchStats.objects.filter(research_folder=f).latest('collected')
+            size = size + stat.size + stat.revision_size
         vf = VaultFolder.objects.get(research_folder=f)
         if vf.deleted is None:
             size = size + VaultStats.objects.filter(vault_folder=vf).latest('collected').size
