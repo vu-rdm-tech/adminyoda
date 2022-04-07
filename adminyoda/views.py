@@ -85,7 +85,7 @@ def size_chart_json(request):
     stats = _quarterly_miscstats()
     for s in stats:
         labels.append(s.label)
-        research.append(round(s.size_research / div, 2))
+        research.append(round(s.size_research / div, 2)+round(s.revision_size / div, 2))
         vault.append(round(s.size_vault / div, 2))
     datasets = [
         {
