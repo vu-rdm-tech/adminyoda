@@ -178,25 +178,34 @@ def _researchstats_month(research_folder, year, month):
                                         collected__month=month).order_by('collected').last()
 
 
-def _monthly_stats(folder, type):
-    stats = {}
+def _monthly_research_stats(folder):
+    stats = []
+    last_size = 0
+    last_revision_size = 0
+    for year in range(start_year, end_year + 1):
+        for month in range(1, 12):
+            s = _researchstats_month(folder, year, month)
+            if s is not None:
+                s.label = f'{year}-{str(month).rjust(2,"0")}'
+                s.delta = s.size - last_size
+                s.revision_delta = s.revision_size - last_revision_size
+                last_size = s.size
+                last_revision_size = s.revision_size
+                stats.append(s)
+    return stats
+
+def _monthly_vault_stats(folder):
+    stats = []
     last_size = 0
     for year in range(start_year, end_year + 1):
         for month in range(1, 12):
-            if type == 'research':
-                s = _researchstats_month(folder, year, month)
-            elif type == 'vault':
-                s = _vaultstats_month(folder, year, month)
+            s = _vaultstats_month(folder, year, month)
             if s is not None:
-                size = s.size
-                label = f'{year}-{month}'
-                stats[label] = {}
-                delta = size - last_size
-                last_size = size
-                stats[label]['size'] = size
-                stats[label]['delta'] = delta
+                s.label = f'{year}-{str(month).rjust(2,"0")}'
+                s.delta = s.size - last_size
+                last_size = s.size
+                stats.append(s)
     return stats
-
 
 def _quarterly_research_stats(folder):
     quarters = [3, 6, 9, 12]
@@ -241,9 +250,11 @@ def _research_stats(project_id):
     vault_stats = {}
     labels = []
     for f in rf:
-        rstats = _quarterly_research_stats(f)
+        #rstats = _quarterly_research_stats(f)
+        rstats = _monthly_research_stats(f)
         vf = VaultFolder.objects.get(research_folder=f)
-        vstats = _quarterly_vault_stats(vf)
+        #vstats = _quarterly_vault_stats(vf)
+        vstats = _monthly_vault_stats(vf)
         i = 0
         # Now merge these on label
         for rstat in rstats:
