@@ -139,5 +139,7 @@ Q_CLUSTER = {
     "orm": "default",  # Use Django's ORM + database for broker
     'timeout': 60,
     'retry': 1000,
+    'max_attempts': 2,
+    'ack_failures': True
 }
 
