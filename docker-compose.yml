@@ -62,7 +62,7 @@ services:
   nginx:
     image: nginx:latest
     restart: always
-    depends-on:
+    depends_on:
       - adminyoda-web
     container_name: nginx
     ports:
