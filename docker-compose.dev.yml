@@ -46,6 +46,7 @@ services:
       SECRET: ${SECRET}
     command: python manage.py qcluster
     volumes:
+      - .:/usr/src/app
       - /docker/adminyoda/log:/usr/app/log
       - ${DATASRC}:/data:rw
 
