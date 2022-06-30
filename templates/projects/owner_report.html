@@ -1,36 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 5px
+        }
+    </style>
+</head>
+<body>
 <p>Dear Yoda user,</p>
 
 <p>These are the details and current storage usage for project:</p>
 <table>
-    <tr><td>TITLE</td><td>{{ details.project.title }}</td></tr>
-    <tr><td>PROJECT OWNER:</td><td>{{ project.owner.firstname }} {{ project.owner.lastname }}</td></tr>
-    <tr><td>DEPARTMENT:</td><td>{{ project.department.faculty }} {{ project.department.institute }} {{ project.department.name}}</td></tr>
-    <tr><td>BUDGET CODE:</td><td>{{ project.budget.code }}</td></tr>
-    <tr><td>BUDGET OWNER VUNETID:</td><td>{{ project.budget.vunetid }}</td></tr>
+    <tr>
+        <td>Title:</td>
+        <td>{{ details.project.title }}</td>
+    </tr>
+    <tr>
+        <td>Owner:</td>
+        <td>{{ project.owner.firstname }} {{ project.owner.lastname }}</td>
+    </tr>
+    <tr>
+        <td>Department:</td>
+        <td>{{ project.department.faculty }} {{ project.department.institute }} {{ project.department.name }}</td>
+    </tr>
+    <tr>
+        <td>Budget code:</td>
+        <td>{{ project.budget.code }}</td>
+    </tr>
+    <tr>
+        <td>Budget owner:</td>
+        <td>{{ project.budget.vunetid }}</td>
+    </tr>
 </table>
 <p>Please contact us at rdm@vu.nl if this information is incorrect or needs to be updated.</p>
-
-<h1>YODA DATA FOLDERS:</h1>
-{% for r in details.research_folders %}
-    <p>{{ r.research_name }}: {{ r.research_size }}</p>
-    <p>{{ r.vault_name }}: {{r.vault_size}}</p>
-        {% if r.datasets|length > 0 %}
-            <p>Datasets in the Vault:</p>'
-        {% else %}
-            <p>No datasets in this Vault</p>
-        {% endif %}
-    <ul>
-            {% for d in r.datasets %}
-                <li>{{ d.name }} ({{ d.status }}, retention: {{ d.retention }}): {{ d.csize }}</li>
-            {% endfor %}
-    </ul>
-{% endfor %}
-
-<h1>PROJECT TOTAL SIZE:</h1>
+<b>Yoda data folders:</b>
 <table>
-    <tr><td>Research:</td><td>{{ details.research_size }} = {{ details.research_blocks }} {{ details.research_block_size }} block(s)</td></tr>
-    <tr><td>Vault:</td><td>{{ details.vault_size }} = {{ details.vault_blocks }} {{ details.vault_block_size }} block(s)</td></tr>
-    <tr><td>More stats on:</td><td>{{ sitename }}/projects/{{ project.id }} (on campus or via eduvpn)'</td></tr>
+    <tr>
+        <th>Name</th>
+        <th>Research</th>
+        <th>Vault</th>
+        <th>Datasets in Vault</th>
+    </tr>
+    {% for r in details.research_folders %}
+        <tr>
+            <td>{{ r.research_name }}</td>
+            <td>{{ r.research_size }}</td>
+            <td>{{ r.vault_size }}</td>
+            <td>
+                {% if r.datasets|length > 0 %}
+                    <ul>
+                        {% for d in r.datasets %}
+                            <li>{{ d.name }} ({{ d.status }}, retention: {{ d.retention }}): {{ d.csize }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
 </table>
-<p>Kind regards,</p>
-<p>The data management team</p>
+<br>
+<b>Total project size:</b>
+<table>
+    <tr>
+        <th></th>
+        <th>Size</th>
+        <th>Blocks</th>
+    </tr>
+    <tr>
+        <td><b>Research</b></td>
+        <td>{{ details.research_size }}</td>
+        <td>{{ details.research_blocks }} {{ details.research_block_size }} block(s)</td>
+    </tr>
+    <tr>
+        <td><b>Vault</b></td>
+        <td>{{ details.vault_size }}</td>
+        <td>{{ details.vault_blocks }} {{ details.vault_block_size }} block(s)</td>
+    </tr>
+</table>
+<p>More stats on the <a href="https://{{ sitename }}/projects/{{ project.id }}">adminyoda website</a> (on campus or via
+    eduvpn)</p>
+
+<p>Kind regards,<br>
+    The data management team</p>
+</body>
+</html>

@@ -16,8 +16,9 @@ def send_monthly_owner_reports():
     for project in projects:
         details = project_detail_data(project.id)
         project = Project.objects.get(pk=project.id)
-        msg_plain = render_to_string('projects/owner_report.txt', {'project': project, 'details': details, 'sitename': os.environ.get("SITE_NAME")})
-        msg_html = render_to_string('projects/owner_report.html', {'project': project, 'details': details, 'sitename': os.environ.get("SITE_NAME")})
+        params = {'project': project, 'details': details, 'sitename': os.environ.get("SITE_NAME")}
+        msg_plain = render_to_string('projects/owner_report.txt', params)
+        msg_html = render_to_string('projects/owner_report.html', params)
         try:
             send_mail(
                 f'{datetime.datetime.now().strftime("%B")} Yoda usage report for "{project.title}"',
