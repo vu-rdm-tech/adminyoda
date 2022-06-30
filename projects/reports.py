@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def send_monthly_owner_reports():
-    projects = Project.objects.all()
+    projects = Project.objects.filter(delete_date__isnull=True).all()
     for project in projects:
         details = project_detail_data(project.id)
         project = Project.objects.get(pk=project.id)
