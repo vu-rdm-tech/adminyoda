@@ -1,0 +1,31 @@
+Dear Yoda user,
+
+These are the details and current storage usage for project:
+TITLE:                  {{ details.project.title }}
+PROJECT OWNER:          {{ project.owner.firstname }} {{ project.owner.lastname }}
+DEPARTMENT:             {{ project.department.faculty }} {{ project.department.institute }} {{ project.department.name}}
+BUDGET CODE:            {{ project.budget.code }}
+BUDGET OWNER VUNETID:   {{ project.budget.vunetid }}
+Please contact us at rdm@vu.nl if this information is incorrect or needs to be updated.
+
+YODA DATA FOLDERS:
+{% for r in details.research_folders %}
+    {{ r.research_name}}: {{ r.research_size }}
+    {{ r.vault_name }}: {{ r.vault_size }}
+        {% if r.datasets|length > 0 %}
+            Datasets in the Vault:{NEWLINE}'
+        {% else %}
+            No datasets in this Vault
+        {% endif %}
+        {% for d in r.datasets %}
+            {{ d.name }} ({{ d.status }}, retention: {{ d.retention }}): {{ d.csize }}
+        {% endfor %}
+{% endfor %}
+
+PROJECT TOTAL SIZE:
+Research:   {{ details.research_size }} = {{ details.research_blocks }} {{ details.research_block_size }} block(s)
+Vault:      {{ details.vault_size }} = {{ details.vault_blocks }} {{ details.vault_block_size }} block(s)
+More stats on: {{ sitename }}/projects/{{ project.id }} (on campus or via eduvpn)'
+
+Kind regards,
+The data management team

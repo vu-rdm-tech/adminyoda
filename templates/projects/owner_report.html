@@ -1,0 +1,36 @@
+<p>Dear Yoda user,</p>
+
+<p>These are the details and current storage usage for project:</p>
+<table>
+    <tr><td>TITLE</td><td>{{ details.project.title }}</td></tr>
+    <tr><td>PROJECT OWNER:</td><td>{{ project.owner.firstname }} {{ project.owner.lastname }}</td></tr>
+    <tr><td>DEPARTMENT:</td><td>{{ project.department.faculty }} {{ project.department.institute }} {{ project.department.name}}</td></tr>
+    <tr><td>BUDGET CODE:</td><td>{{ project.budget.code }}</td></tr>
+    <tr><td>BUDGET OWNER VUNETID:</td><td>{{ project.budget.vunetid }}</td></tr>
+</table>
+<p>Please contact us at rdm@vu.nl if this information is incorrect or needs to be updated.</p>
+
+<h1>YODA DATA FOLDERS:</h1>
+{% for r in details.research_folders %}
+    <p>{{ r.research_name }}: {{ r.research_size }}</p>
+    <p>{{ r.vault_name }}: {{r.vault_size}}</p>
+        {% if r.datasets|length > 0 %}
+            <p>Datasets in the Vault:</p>'
+        {% else %}
+            <p>No datasets in this Vault</p>
+        {% endif %}
+    <ul>
+            {% for d in r.datasets %}
+                <li>{{ d.name }} ({{ d.status }}, retention: {{ d.retention }}): {{ d.csize }}</li>
+            {% endfor %}
+    </ul>
+{% endfor %}
+
+<h1>PROJECT TOTAL SIZE:</h1>
+<table>
+    <tr><td>Research:</td><td>{{ details.research_size }} = {{ details.research_blocks }} {{ details.research_block_size }} block(s)</td></tr>
+    <tr><td>Vault:</td><td>{{ details.vault_size }} = {{ details.vault_blocks }} {{ details.vault_block_size }} block(s)</td></tr>
+    <tr><td>More stats on:</td><td>{{ sitename }}/projects/{{ project.id }} (on campus or via eduvpn)'</td></tr>
+</table>
+<p>Kind regards,</p>
+<p>The data management team</p>
