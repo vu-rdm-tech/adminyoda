@@ -54,11 +54,9 @@
             <td>{{ r.vault_size }}</td>
             <td>
                 {% if r.datasets|length > 0 %}
-                    <ul>
                         {% for d in r.datasets %}
-                            <li>{{ d.name }} ({{ d.status }}, retention: {{ d.retention }}): {{ d.csize }}</li>
+                            {{ d.name }} ({{ d.status }}, retention: {{ d.retention }}): {{ d.csize }}<br>
                         {% endfor %}
-                    </ul>
                 {% else %}
                     None
                 {% endif %}
