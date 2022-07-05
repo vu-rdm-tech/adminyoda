@@ -54,9 +54,9 @@
             <td>{{ r.vault_size }}</td>
             <td>
                 {% if r.datasets|length > 0 %}
-                        {% for d in r.datasets %}
-                            {{ d.name }} ({{ d.status }}, retention: {{ d.retention }}): {{ d.csize }}<br>
-                        {% endfor %}
+                    {% for d in r.datasets %}
+                        {{ d.name }} ({{ d.status }}, retention: {{ d.retention }}): {{ d.csize }}<br>
+                    {% endfor %}
                 {% else %}
                     None
                 {% endif %}
@@ -65,24 +65,31 @@
     {% endfor %}
 </table>
 <br>
-<b>Total project size:</b>
+<b>Monthly project costs:</b>
 <table>
     <tr>
-        <th></th>
-        <th>Size</th>
-        <th>Blocks</th>
+        {% for v in research_stats.0 %}
+            <th>{{ v }}</th>
+        {% endfor %}
     </tr>
     <tr>
-        <td><b>Research</b></td>
-        <td>{{ details.research_size }}</td>
-        <td>{{ details.research_blocks }} {{ details.research_block_size }} block(s)</td>
+
+        {% for v in research_stats.1 %}
+            <td>{{ v }}</td>
+        {% endfor %}
     </tr>
     <tr>
-        <td><b>Vault</b></td>
-        <td>{{ details.vault_size }}</td>
-        <td>{{ details.vault_blocks }} {{ details.vault_block_size }} block(s)</td>
+        {% for v in research_stats.2 %}
+            <td>{{ v }}</td>
+        {% endfor %}
+    </tr>
+    <tr>
+        {% for v in research_stats.3 %}
+            <td>{{ v }}</td>
+        {% endfor %}
     </tr>
 </table>
+Total cost so far for this year: {{ total_cost }} euro
 <p>More stats on the <a href="https://{{ sitename }}/projects/{{ project.id }}">adminyoda website</a> (on campus or via
     eduvpn)</p>
 

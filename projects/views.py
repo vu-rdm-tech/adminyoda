@@ -5,6 +5,7 @@ from .models import Project, MiscStats, VaultDataset, ResearchFolder, Department
     ResearchStats, Person, Datamanager
 from datetime import datetime
 
+BLOCK_MONTH_COST = 8.0
 GB = 1024 * 1024 * 1024
 start_month = 6
 start_year = 2021
@@ -30,6 +31,7 @@ def friendly_size(num):
         num /= 1024.0
 
 def calculate_blocks(bytes, block_size=250):
+    bytes = bytes + 1 # avoid 0
     gigabytes = bytes/(1024*1024*1024)
     return int(math.ceil(gigabytes/block_size))
 
@@ -178,13 +180,12 @@ def _researchstats_month(research_folder, year, month):
     return ResearchStats.objects.filter(research_folder=research_folder, collected__year=year,
                                         collected__month=month).order_by('collected').last()
 
-
 def _monthly_research_stats(folder):
     stats = []
     last_size = 0
     last_revision_size = 0
     for year in range(start_year, end_year + 1):
-        for month in range(1, 12):
+        for month in range(1, 13):
             s = _researchstats_month(folder, year, month)
             if s is not None:
                 s.label = f'{year}-{str(month).rjust(2,"0")}'
@@ -192,6 +193,7 @@ def _monthly_research_stats(folder):
                 s.revision_delta = s.revision_size - last_revision_size
                 last_size = s.size
                 last_revision_size = s.revision_size
+                s.total_size = s.size + s.revision_size
                 stats.append(s)
     return stats
 
@@ -199,7 +201,7 @@ def _monthly_vault_stats(folder):
     stats = []
     last_size = 0
     for year in range(start_year, end_year + 1):
-        for month in range(1, 12):
+        for month in range(1, 13):
             s = _vaultstats_month(folder, year, month)
             if s is not None:
                 s.label = f'{year}-{str(month).rjust(2,"0")}'
@@ -244,7 +246,7 @@ def _quarterly_vault_stats(folder):
     return stats
 
 
-def _research_stats(project_id):
+def project_research_stats(project_id):
     project = Project.objects.get(pk=project_id)
     rf = ResearchFolder.objects.filter(project=project)  # deleted folders should automatically disappear from the stats
     research_stats = {}
@@ -268,6 +270,8 @@ def _research_stats(project_id):
                 research_stats[label]['delta'] = 0
                 research_stats[label]['revision_size'] = 0
                 research_stats[label]['revision_delta'] = 0
+                research_stats[label]['total_size'] = 0
+            research_stats[label]['total_size'] += rstat.total_size
             research_stats[label]['size'] += rstat.size
             research_stats[label]['delta'] += rstat.delta
             research_stats[label]['revision_size'] += rstat.revision_size
@@ -290,7 +294,7 @@ def project_size_chart_json(request, project_id):
     revision = []
     vault = []
     div = (1024 * 1024 * 1024)
-    labels, research_stats, vault_stats = _research_stats(project_id)
+    labels, research_stats, vault_stats = project_research_stats(project_id)
     i = 0
     for label in labels:
         research.append(round(research_stats[label]['size'] / div, 2))
@@ -328,7 +332,7 @@ def project_delta_chart_json(request, project_id):
     revision = []
     vault = []
     div = (1024 * 1024 * 1024)
-    labels, research_stats, vault_stats = _research_stats(project_id)
+    labels, research_stats, vault_stats = project_research_stats(project_id)
     i = 0
     for label in labels:
         research.append(round(research_stats[label]['delta'] / div, 2))
