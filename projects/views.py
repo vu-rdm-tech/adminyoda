@@ -117,7 +117,7 @@ def project_detail_data(project_id):
             dms = Datamanager.objects.filter(category=f.category)
             rf_data.datamanagers_object = len(dms)
             for dm in dms:
-                rf_data.datamanagers.append(f'{dm.user.firstname} {dm.user.lastname} ({dm.user.vunetid})')
+                rf_data.datamanagers.append(f'{dm.user.firstname} {dm.user.lastname} ({dm.user.email} )')
             rf_data.research_name = f.yoda_name
             if deleted:
                 rf_data.research_name = f'{rf_data.research_name} [deleted]'
