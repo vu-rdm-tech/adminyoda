@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import shutil
 from datetime import datetime, timedelta
 import logging
@@ -57,9 +58,16 @@ def process_irods_stats():
                                                                                     defaults={'yoda_name': vaultname})
                     elif group.startswith('datamanager-'):
                         logger.info(f'processing datamanager group {group} in {file}')
+                        email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
                         for m in data['groups'][group]['members']:
-                            if len(m) == 6:
+                            valid = False
+                            if re.fullmatch(email_regex, m): # email
+                                u, created = Person.objects.get_or_create(email=m)
+                                valid = True
+                            elif len(m) == 6: # vunetid
                                 u, created = Person.objects.get_or_create(vunetid=m)
+                                valid = True
+                            if valid:
                                 u.save()
                                 d, created = Datamanager.objects.get_or_create(user=u, yoda_name=group)
                                 d.category = data['groups'][group]['category']
