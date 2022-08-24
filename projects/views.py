@@ -7,7 +7,6 @@ from datetime import datetime
 
 BLOCK_MONTH_COST = 8.0
 GB = 1024 * 1024 * 1024
-start_month = 6
 start_year = 2021
 today = datetime.now()
 end_month = today.month

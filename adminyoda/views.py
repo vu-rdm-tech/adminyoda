@@ -4,8 +4,7 @@ from projects.models import Project, MiscStats, VaultDataset, ResearchFolder, De
 from datetime import datetime
 from django.db.models import Sum
 
-start_month = 6
-start_year = 2021
+start_year = 2022
 today = datetime.now()
 end_month = today.month
 end_year = today.year
@@ -175,13 +174,6 @@ def storage_chart_json(request):
             'data': research,
         },
         {
-            'label': 'Vault',
-            'backgroundColor': 'rgba(127,201,127, 0.4)',
-            'borderColor': 'rgba(127,201,127)',
-            'borderWidth': 1,
-            'data': vault,
-        },
-        {
             'label': 'Revisions',
             'backgroundColor': 'rgba(190,174,212,  0.4)',
             'borderColor': 'rgba(190,174,212)',
@@ -194,6 +186,13 @@ def storage_chart_json(request):
             'borderColor': 'rgba(56,108,176)',
             'borderWidth': 1,
             'data': trash,
+        },
+        {
+            'label': 'Vault',
+            'backgroundColor': 'rgba(127,201,127, 0.4)',
+            'borderColor': 'rgba(127,201,127)',
+            'borderWidth': 1,
+            'data': vault,
         },
 
     ]
