@@ -13,9 +13,9 @@ YODA DATA FOLDERS:
     {{ r.research_name}}: {{ r.research_size }}
     {{ r.vault_name }}: {{ r.vault_size }}
         {% if r.datasets|length > 0 %}
-            Datasets in the Vault:{NEWLINE}'
+            Datasets in the Vault:
         {% else %}
-            No datasets in this Vault
+            None
         {% endif %}
         {% for d in r.datasets %}
             {{ d.name }} ({{ d.status }}, retention: {{ d.retention }}): {{ d.csize }}
@@ -23,9 +23,12 @@ YODA DATA FOLDERS:
 {% endfor %}
 
 PROJECT TOTAL SIZE:
-Research:   {{ details.research_size }} = {{ details.research_blocks }} {{ details.research_block_size }} block(s)
-Vault:      {{ details.vault_size }} = {{ details.vault_blocks }} {{ details.vault_block_size }} block(s)
-More stats on: {{ sitename }}/projects/{{ project.id }} (on campus or via eduvpn)'
+Research:   {{ details.research_size }}
+Vault:      {{ details.vault_size }}
+More stats on: https://{{ sitename }}/projects/{{ project.id }} (on campus or via eduvpn)
+
+Current cost total: {{ total_cost }} euro for the active Research data.
+You will be billed for active storage used on December 1st
 
 Kind regards,
 The data management team

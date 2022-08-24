@@ -30,10 +30,10 @@ def friendly_size(num):
             return "%3.1f %s" % (num, x)
         num /= 1024.0
 
-def calculate_blocks(bytes, block_size=250):
+def calculate_blocks(bytes, block_size_GB=2048):
     bytes = bytes + 1 # avoid 0
     gigabytes = bytes/(1024*1024*1024)
-    return int(math.ceil(gigabytes/block_size))
+    return int(math.ceil(gigabytes/block_size_GB))
 
 # Create your views here.
 def projects_index(request):
@@ -144,12 +144,10 @@ def project_detail_data(project_id):
             rf_data.vault_size = friendly_size(s)
             total_vault_size += s
             data.research_folders.append(rf_data)
+        data.research_size_bytes = total_research_size
+        data.vault_size_bytes = total_vault_size
         data.research_size = friendly_size(total_research_size)
-        data.research_block_size = '2TB'
-        data.research_blocks = calculate_blocks(total_research_size, 2048)
         data.vault_size = friendly_size(total_vault_size)
-        data.vault_block_size = '250GB'
-        data.vault_blocks = calculate_blocks(total_vault_size, 250)
     except Project.DoesNotExist:
         return None
     return data

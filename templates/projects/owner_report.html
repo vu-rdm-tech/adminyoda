@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<html>
 <head>
     <style>
         table, th, td {
@@ -65,35 +64,27 @@
     {% endfor %}
 </table>
 <br>
-<b>Monthly project costs:</b>
+
+Current cost total: {{ total_cost }} euro for the active Research data.<br>
+You will be billed for active storage used on December 1st
 <table>
     <tr>
-        {% for v in research_stats.0 %}
-            <th>{{ v }}</th>
-        {% endfor %}
+        <td>size < 500GB</td>
+        <td>Free</td>
     </tr>
     <tr>
-
-        {% for v in research_stats.1 %}
-            <td>{{ v }}</td>
-        {% endfor %}
+        <td>Between 500GB and 2TB</td>
+        <td>€200,-</td>
     </tr>
     <tr>
-        {% for v in research_stats.2 %}
-            <td>{{ v }}</td>
-        {% endfor %}
-    </tr>
-    <tr>
-        {% for v in research_stats.3 %}
-            <td>{{ v }}</td>
-        {% endfor %}
+        <td>Per 2TB block above 2TB</td>
+        <td>€100,-</td>
     </tr>
 </table>
-Total cost so far for this year: {{ total_cost }} euro
+
 <p>More stats on the <a href="https://{{ sitename }}/projects/{{ project.id }}">adminyoda website</a> (on campus or via
     eduvpn)</p>
 
 <p>Kind regards,<br>
     The data management team</p>
 </body>
-</html>
