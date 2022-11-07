@@ -15,6 +15,8 @@ def convert_bytes(num):
             return "%3.1f %s" % (num, x)
         num /= 1024.0
 
+
+
 class ResearchFolderInline(admin.StackedInline):
     model=ResearchFolder
     extra = 0
@@ -28,14 +30,19 @@ class VaultDatasetInline(admin.StackedInline):
     extra = 0
 
 class ProjectAdmin(admin.ModelAdmin):
+    ordering = ["title"]
     inlines=[
         ResearchFolderInline,
         #VaultFolderInline,
         #VaultDatasetInline,
     ]
 
+class PersonAdmin(admin.ModelAdmin):
+    ordering = ["email"]
+
 class ResearchAdmin(admin.ModelAdmin):
     list_display = ("yoda_name", "category", "project", "size", "datasets", "deleted")
+    ordering = ["yoda_name"]
     inlines=[
         VaultFolderInline,
     ]
@@ -56,11 +63,12 @@ class ResearchAdmin(admin.ModelAdmin):
 
 
 class VaultAdmin(admin.ModelAdmin):
+    ordering = ["yoda_name"]
     inlines=[
         VaultDatasetInline,
     ]
 
-admin.site.register(Person)
+admin.site.register(Person, PersonAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Budget)
 admin.site.register(Department)
