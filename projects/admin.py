@@ -35,7 +35,7 @@ class ProjectAdmin(admin.ModelAdmin):
     ]
 
 class ResearchAdmin(admin.ModelAdmin):
-    list_display = ("yoda_name", "category", "project", "size", "datasets")
+    list_display = ("yoda_name", "category", "project", "size", "datasets", "deleted")
     inlines=[
         VaultFolderInline,
     ]
