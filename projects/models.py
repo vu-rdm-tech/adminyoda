@@ -11,7 +11,7 @@ class Person(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'{self.vunetid} | {self.lastname}, {self.firstname}'
+        return f'{self.email} | {self.lastname}, {self.firstname}'
 
 
 class Department(models.Model):
