@@ -36,7 +36,7 @@ def calculate_blocks(bytes, block_size_GB=2048):
 
 # Create your views here.
 def projects_index(request):
-    pr = Project.objects.all().order_by('title')
+    pr = Project.objects.filter(delete_date__isnull=True).all().order_by('title')
     data = []
     for p in pr:
         d = CustomObject()
