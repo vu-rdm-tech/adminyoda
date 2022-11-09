@@ -19,9 +19,9 @@ def cleanup():
     last_update = MiscStats.objects.order_by('collected').last().collected
     cutoff = make_aware(datetime.combine(last_update, datetime.min.time())) - timedelta(days=days)
     logger.info(f'Mark folders and datasets last updated before {cutoff} as deleted.')
-    ResearchFolder.objects.filter(updated__lte=cutoff).update(deleted=now())
-    VaultFolder.objects.filter(updated__lte=cutoff).update(deleted=now())
-    VaultDataset.objects.filter(updated__lte=cutoff).update(deleted=now())
+    ResearchFolder.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff).update(deleted=now())
+    VaultFolder.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff).update(deleted=now())
+    VaultDataset.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff).update(deleted=now())
 
 
 def process_irods_stats():
