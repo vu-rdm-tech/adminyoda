@@ -205,7 +205,7 @@ def faculty_chart_json(request):
     index = {}
     i = 0
     colors = []
-    projects = Project.objects.order_by('department').all()
+    projects = Project.objects.filter(delete_date__isnull=True).order_by('department').all()
     for project in projects:
         faculty = Department.objects.get(id=project.department.id).faculty
         if faculty not in labels:
