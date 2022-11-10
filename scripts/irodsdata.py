@@ -117,7 +117,7 @@ class IrodsData():
                 groups[groupname]['members'] = member_names
                 groups[groupname]['read_members'] = []
                 if path.startswith('research-'):
-                    read_group_obj = self.session.user_groups.get(groupname.replace('research-', 'read-'))
+                    read_group_obj = self.session.user_groups.get(groupname.replace('research-', 'read-', 1))
                     read_member_names = [user.name for user in read_group_obj.members]
                     groups[groupname]['read_members'] = read_member_names
         return groups
