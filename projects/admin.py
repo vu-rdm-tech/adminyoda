@@ -18,18 +18,33 @@ def convert_bytes(num):
 
 
 class ResearchFolderInline(admin.StackedInline):
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
     model=ResearchFolder
     extra = 0
 
 class VaultFolderInline(admin.StackedInline):
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
     model=VaultFolder
     extra = 0
 
 class VaultDatasetInline(admin.StackedInline):
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
     model=VaultDataset
     extra = 0
 
 class ProjectAdmin(admin.ModelAdmin):
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     ordering = ["title"]
     inlines=[
         ResearchFolderInline,
@@ -41,6 +56,11 @@ class PersonAdmin(admin.ModelAdmin):
     ordering = ["email"]
 
 class ResearchAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     list_display = ("yoda_name", "category", "project", "size", "datasets", "deleted")
     ordering = ["yoda_name"]
     inlines=[
@@ -63,6 +83,11 @@ class ResearchAdmin(admin.ModelAdmin):
 
 
 class VaultAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     ordering = ["yoda_name"]
     inlines=[
         VaultDatasetInline,
