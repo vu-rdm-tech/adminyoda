@@ -91,7 +91,7 @@ class IrodsData():
         internal = 0
         external = 0
         for user in self.session.user_groups.get(group_name).members:
-            if ("@" in user.name) and ("@vu.nl" not in user.name):
+            if "@vu.nl" not in user.name:
                 external += 1
             else:
                 internal += 1
