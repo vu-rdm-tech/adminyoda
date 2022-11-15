@@ -2,7 +2,7 @@ import json
 import os
 import re
 import shutil
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import logging
 from projects.models import ResearchFolder, VaultFolder, VaultDataset, VaultStats, ResearchStats, Person, Datamanager, \
     MiscStats, Project
@@ -15,14 +15,33 @@ logger = logging.getLogger(__name__)
 # don't forget to 'sudo systemctl restart qcluster' when code here is changed
 
 def cleanup():
+    # when a folder is deleted in Yoda it will no longer be part of the weekly data export. That means we can
+    # consider research, vault and dataset folder records last updated <days> before the last collection date (<last_update>) as deleted in Yoda.
     days = 2
     last_update = MiscStats.objects.order_by('collected').last().collected
     cutoff = make_aware(datetime.combine(last_update, datetime.min.time())) - timedelta(days=days)
     logger.info(f'Mark folders and datasets last updated before {cutoff} as deleted.')
-    ResearchFolder.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff).update(deleted=now())
-    VaultFolder.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff).update(deleted=now())
-    VaultDataset.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff).update(deleted=now())
-
+    #rf = ResearchFolder.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff)
+    #vf = VaultFolder.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff)
+    #vd = VaultDataset.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff)
+    rf = ResearchFolder.objects.filter(updated__lte=cutoff)
+    vf = VaultFolder.objects.filter(updated__lte=cutoff)
+    vd = VaultDataset.objects.filter(updated__lte=cutoff)
+    for f in rf:
+        ResearchStats.objects.update_or_create(
+            research_folder=f,
+            collected=date.today(),
+            defaults={'size': 0, 'revision_size': 0},
+        )
+    for f in vf:
+        VaultStats.objects.update_or_create(
+            vault_folder=f,
+            collected=date.today(),
+            defaults={'size': 0},
+        )
+    vd.update(deleted=now(), size=0)
+    vf.update(deleted=now())
+    rf.update(deleted=now())
 
 def process_irods_stats():
     files = sorted(os.listdir(DATADIR))
