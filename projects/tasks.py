@@ -21,12 +21,9 @@ def cleanup():
     last_update = MiscStats.objects.order_by('collected').last().collected
     cutoff = make_aware(datetime.combine(last_update, datetime.min.time())) - timedelta(days=days)
     logger.info(f'Mark folders and datasets last updated before {cutoff} as deleted.')
-    #rf = ResearchFolder.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff)
-    #vf = VaultFolder.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff)
-    #vd = VaultDataset.objects.filter(delete_date__isnull=True).filter(updated__lte=cutoff)
-    rf = ResearchFolder.objects.filter(updated__lte=cutoff)
-    vf = VaultFolder.objects.filter(updated__lte=cutoff)
-    vd = VaultDataset.objects.filter(updated__lte=cutoff)
+    rf = ResearchFolder.objects.filter(deleted__isnull=True).filter(updated__lte=cutoff)
+    vf = VaultFolder.objects.filter(deleted__isnull=True).filter(updated__lte=cutoff)
+    vd = VaultDataset.objects.filter(deleted__isnull=True).filter(updated__lte=cutoff)
     for f in rf:
         ResearchStats.objects.update_or_create(
             research_folder=f,
