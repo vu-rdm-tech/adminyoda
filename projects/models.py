@@ -47,7 +47,7 @@ class Project(models.Model):
     owner = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='project_owner')
     manager = models.ForeignKey(Person, on_delete=models.SET_NULL, blank=True, null=True,
                                 related_name='project_manager')
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, blank=True, null=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, default=3)
     budget = models.ForeignKey(Budget, on_delete=models.CASCADE)
     request_date = models.DateField()
     requested_size = models.IntegerField(default=500)
