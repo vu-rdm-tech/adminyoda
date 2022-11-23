@@ -55,6 +55,9 @@ class ProjectAdmin(admin.ModelAdmin):
 class PersonAdmin(admin.ModelAdmin):
     ordering = ["email"]
 
+class DepartmentAdmin(admin.ModelAdmin):
+    ordering = ["faculty", "name"]
+
 class ResearchAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         return False
@@ -96,7 +99,7 @@ class VaultAdmin(admin.ModelAdmin):
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Budget)
-admin.site.register(Department)
+admin.site.register(Department, DepartmentAdmin)
 admin.site.register(ResearchFolder, ResearchAdmin)
 admin.site.register(VaultFolder, VaultAdmin)
 
