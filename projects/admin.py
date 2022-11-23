@@ -45,15 +45,17 @@ class ProjectAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    list_display = ["title", "owner", "department", "research_folders"]
     ordering = ["title"]
     inlines=[
         ResearchFolderInline,
-        #VaultFolderInline,
-        #VaultDatasetInline,
     ]
+    def research_folders(self, obj):
+        return ResearchFolder.objects.filter(project=obj).count()
 
 class PersonAdmin(admin.ModelAdmin):
     ordering = ["email"]
+    list_display = ["lastname", "firstname", "email", "vunetid"]
 
 class DepartmentAdmin(admin.ModelAdmin):
     ordering = ["faculty", "name"]
