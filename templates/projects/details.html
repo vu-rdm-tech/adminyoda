@@ -47,12 +47,17 @@
         </tr>
         </table>
 
-    <canvas id="project-size-chart" data-url="project_size_chart_json/{{ data.project.id }}"></canvas>
+    <!--<canvas id="project-size-chart" data-url="project_size_chart_json/{{ data.project.id }}"></canvas>-->
+    <canvas id="project-research-size-chart" data-url="project_research_size_chart_json/{{ data.project.id }}"></canvas>
+    <hr/>
+    <canvas id="project-vault-size-chart" data-url="project_vault_size_chart_json/{{ data.project.id }}"></canvas>
     <hr/>
     <canvas id="project-delta-chart" data-url="project_delta_chart_json/{{ data.project.id }}"></canvas>
     <script>
         $(function () {
-            setStackedBarChart($("#project-size-chart"), 'Size', false);
+            //setStackedBarChart($("#project-size-chart"), 'Size', false);
+            setStackedBarChart($("#project-research-size-chart"), 'Research size', false);
+            setStackedBarChart($("#project-vault-size-chart"), 'Vault size', false);
             setStackedBarChart($("#project-delta-chart"), 'Growth', false);
         });
     </script>

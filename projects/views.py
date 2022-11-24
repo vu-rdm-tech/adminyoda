@@ -324,7 +324,104 @@ def project_size_chart_json(request, project_id):
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
 
+def project_research_size_chart_json(request, project_id):
+    research = []
+    div = (1024 * 1024 * 1024)
+    labels, research_stats, vault_stats = project_research_stats(project_id)
+    i = 0
+    for label in labels:
+        research.append(round((research_stats[label]['size'] + research_stats[label]['revision_size']) / div, 2))
+
+        i += 1
+    datasets = [
+        {
+            'label': 'Research',
+            'backgroundColor': 'rgba(253,192,134, 0.4)',
+            'borderColor': 'rgba(253,192,134)',
+            'borderWidth': 1,
+            'data': research,
+        },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+
+def project_research_revision_size_chart_json(request, project_id):
+    research = []
+    revision = []
+    div = (1024 * 1024 * 1024)
+    labels, research_stats, vault_stats = project_research_stats(project_id)
+    i = 0
+    for label in labels:
+        research.append(round(research_stats[label]['size'] / div, 2))
+        revision.append(round(research_stats[label]['revision_size'] / div, 2))
+        i += 1
+    datasets = [
+        {
+            'label': 'Research',
+            'backgroundColor': 'rgba(253,192,134, 0.4)',
+            'borderColor': 'rgba(253,192,134)',
+            'borderWidth': 1,
+            'data': research,
+        },
+        {
+            'label': 'Revisions',
+            'backgroundColor': 'rgba(190,174,212, 0.4)',
+            'borderColor': 'rgba(190,174,212)',
+            'borderWidth': 1,
+            'data': revision,
+        },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+def project_vault_size_chart_json(request, project_id):
+    vault = []
+    div = (1024 * 1024 * 1024)
+    labels, research_stats, vault_stats = project_research_stats(project_id)
+    i = 0
+    for label in labels:
+        vault.append(round(vault_stats[label]['size'] / div, 2))
+        i += 1
+    datasets = [
+        {
+            'label': 'Vault',
+            'backgroundColor': 'rgba(127,201,127, 0.4)',
+            'borderColor': 'rgba(127,201,127)',
+            'borderWidth': 1,
+            'data': vault,
+        },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
 def project_delta_chart_json(request, project_id):
+    research = []
+    vault = []
+    div = (1024 * 1024 * 1024)
+    labels, research_stats, vault_stats = project_research_stats(project_id)
+    i = 0
+    for label in labels:
+        research.append(round((research_stats[label]['delta'] + research_stats[label]['revision_delta']) / div, 2))
+        vault.append(round(vault_stats[label]['delta'] / div, 2))
+        i += 1
+    datasets = [
+        {
+            'label': 'Research',
+            'backgroundColor': 'rgba(253,192,134, 0.4)',
+            'borderColor': 'rgba(253,192,134)',
+            'borderWidth': 1,
+            'data': research,
+        },
+        {
+            'label': 'Vault',
+            'backgroundColor': 'rgba(127,201,127, 0.4)',
+            'borderColor': 'rgba(127,201,127)',
+            'borderWidth': 1,
+            'data': vault,
+        },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+
+def project_delta_with_revision_chart_json(request, project_id):
     research = []
     revision = []
     vault = []
