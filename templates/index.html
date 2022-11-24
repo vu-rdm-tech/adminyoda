@@ -32,13 +32,21 @@
     <canvas id="project-chart" data-url="{% url 'project_chart_json' %}"></canvas>
     <hr/>
     <canvas id="size-chart" data-url="{% url 'size_chart_json' %}"></canvas>
+    <!--
+    <hr/>
+    <canvas id="research-size-chart" data-url="{% url 'research_size_chart_json' %}"></canvas>
+    <hr/>
+    <canvas id="vault-size-chart" data-url="{% url 'vault_size_chart_json' %}"></canvas>
+    -->
     <hr/>
     <canvas id="user-chart" data-url="{% url 'user_chart_json' %}"></canvas>
     <hr/>
     <script>
         $(function () {
             setStackedBarChart($("#project-chart"), 'Number of projects', false);
-            setStackedBarChart($("#size-chart"), 'Storage size (research and vault)', false);
+            setStackedBarChart($("#size-chart"), 'Research and Vault size (GB)', false);
+            //setStackedBarChart($("#research-size-chart"), 'Research size (GB)', false);
+            //setStackedBarChart($("#vault-size-chart"), 'Vault size (GB)', false);
             setStackedBarChart($("#user-chart"), 'Number of users', true);
         });
     </script>

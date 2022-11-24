@@ -48,10 +48,11 @@ def _quarterly_miscstats():
     for year in range(start_year, end_year + 1):
         q = 1
         for month in quarters:
-            s = MiscStats.objects.filter(collected__year=year, collected__month__lte=month, collected__month__gt=month-3).order_by('collected').last()
+            s = MiscStats.objects.filter(collected__year=year, collected__month__lte=month,
+                                         collected__month__gt=month - 3).order_by('collected').last()
             if s is not None:
-                 s.label = f'{year}-Q{q}'
-                 stats.append(s)
+                s.label = f'{year}-Q{q}'
+                stats.append(s)
             q += 1
     return stats
 
@@ -62,7 +63,7 @@ def _monthly_miscstats():
         for month in range(1, 13):
             s = MiscStats.objects.filter(collected__year=year, collected__month=month).order_by('collected').last()
             if s is not None:
-                #s.label = s.collected
+                # s.label = s.collected
                 s.label = f'{year}-{month}'
                 stats.append(s)
     return stats
@@ -76,6 +77,46 @@ def _all_miscstats():
     return stats
 
 
+def vault_size_chart_json(request):
+    labels = []
+    vault = []
+    div = (1024 * 1024 * 1024)
+    stats = _quarterly_miscstats()
+    for s in stats:
+        labels.append(s.label)
+        vault.append(round(s.size_vault / div, 2))
+    datasets = [
+        {
+            'label': 'Vault',
+            'backgroundColor': 'rgba(127,201,127, 0.4)',
+            'borderColor': 'rgba(127,201,127)',
+            'borderWidth': 1,
+            'data': vault,
+        },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+
+def research_size_chart_json(request):
+    labels = []
+    research = []
+    div = (1024 * 1024 * 1024)
+    stats = _quarterly_miscstats()
+    for s in stats:
+        labels.append(s.label)
+        research.append(round(s.size_research / div, 2) + round(s.revision_size / div, 2))
+    datasets = [
+        {
+            'label': 'Research',
+            'backgroundColor': 'rgba(253,192,134, 0.4)',
+            'borderColor': 'rgba(253,192,134)',
+            'borderWidth': 1,
+            'data': research,
+        },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+
 def size_chart_json(request):
     labels = []
     research = []
@@ -84,7 +125,7 @@ def size_chart_json(request):
     stats = _quarterly_miscstats()
     for s in stats:
         labels.append(s.label)
-        research.append(round(s.size_research / div, 2)+round(s.revision_size / div, 2))
+        research.append(round(s.size_research / div, 2) + round(s.revision_size / div, 2))
         vault.append(round(s.size_vault / div, 2))
     datasets = [
         {
