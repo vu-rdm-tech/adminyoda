@@ -67,6 +67,7 @@ def process_irods_stats():
                         researchgroup_cnt += 1
                         researchfolder, created = ResearchFolder.objects.get_or_create(yoda_name=group)
                         researchfolder.category = data['groups'][group]['category']
+                        researchfolder.data_classification = data['groups'][group]['data_classification']
                         researchfolder.save()
 
                         vaultname = researchfolder.yoda_name.replace('research-', 'vault-', 1)
@@ -110,6 +111,7 @@ def process_irods_stats():
                                                                                   vault_folder=vaultfolder)
                             dataset.status = data['collections'][vaultfolder.yoda_name]['datasets'][set]['status']
                             dataset.retention = int(data['collections'][vaultfolder.yoda_name]['datasets'][set]['retention_period'])
+                            dataset.data_classification = data['collections'][vaultfolder.yoda_name]['datasets'][set]['data_classification']
                             dataset.size = data['collections'][vaultfolder.yoda_name]['datasets'][set]['size']
                             if dataset.status == 'PUBLISHED':
                                 published_cnt += 1

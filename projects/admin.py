@@ -66,7 +66,7 @@ class ResearchAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    list_display = ("yoda_name", "category", "project", "size", "datasets", "deleted")
+    list_display = ("yoda_name", "category", "project", "size", "data_classification", "datasets", "deleted")
     ordering = ["yoda_name"]
     inlines=[
         VaultFolderInline,

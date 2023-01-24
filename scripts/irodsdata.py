@@ -29,7 +29,7 @@ class IrodsData():
         self.data['revision_collections'] = self.get_revision_collections()
         for path in self.data['revision_collections']:
             self.data['revision_collections'][path] = self.get_stats(path=path, root='yoda/revisions')
-            #total_size = total_size + self.data['collections'][path]['size']
+            # total_size = total_size + self.data['collections'][path]['size']
 
         self.data['misc'] = {}
         self.data['misc']['size_total'] = total_size
@@ -113,6 +113,10 @@ class IrodsData():
                 groups[groupname] = {}
                 group_obj = self.session.user_groups.get(groupname)
                 groups[groupname]['category'] = group_obj.metadata.get_one('category').value
+                try:
+                    groups[groupname]['data_classification'] = group_obj.metadata.get_one('data_classification').value
+                except:
+                    groups[groupname]['data_classification'] = "NA"
                 member_names = [user.name for user in group_obj.members]
                 groups[groupname]['members'] = member_names
                 groups[groupname]['read_members'] = []
@@ -155,4 +159,9 @@ class IrodsData():
                 except:
                     retention_period = '0'
                 stats['datasets'][dataset]['retention_period'] = retention_period
+                try:
+                    data_classification = col.metadata.get_one('Data_Classification').value
+                except:
+                    data_classification = ''
+                stats['datasets'][dataset]['data_classification'] = data_classification
         return stats

@@ -63,6 +63,7 @@ class Project(models.Model):
 
 class ResearchFolder(models.Model):
     category = models.CharField(max_length=255)
+    data_classification = models.CharField(max_length=255, default="")
     yoda_name = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.SET_NULL, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -88,6 +89,7 @@ class VaultDataset(models.Model):
     vault_folder = models.ForeignKey(VaultFolder, on_delete=models.CASCADE)
     status = models.CharField(max_length=30, blank=True, null=True)
     retention = models.IntegerField(default=10)
+    data_classification = models.CharField(max_length=255, default="")
     size = models.BigIntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
