@@ -145,6 +145,33 @@ def size_chart_json(request):
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
+def dataset_chart_json(request):
+    labels = []
+    archived = []
+    published = []
+    div = (1024 * 1024 * 1024)
+    stats = _quarterly_miscstats()
+    for s in stats:
+        labels.append(s.label)
+        archived.append(s.datasets_total - s.published_total)
+        published.append(s.published_total)
+    datasets = [
+        {
+            'label': 'archived',
+            'backgroundColor': 'rgba(253,192,134, 0.4)',
+            'borderColor': 'rgba(253,192,134)',
+            'borderWidth': 1,
+            'data': archived,
+        },
+        {
+            'label': 'published',
+            'backgroundColor': 'rgba(127,201,127, 0.4)',
+            'borderColor': 'rgba(127,201,127)',
+            'borderWidth': 1,
+            'data': published,
+        },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
 def project_chart_json(request):
     labels = []
