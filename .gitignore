@@ -24,6 +24,8 @@ media
 .idea/**/libraries
 .idea/*
 *.iws /out/
+.idea
+.idea/
 
 # Python #
 *.py[cod]
