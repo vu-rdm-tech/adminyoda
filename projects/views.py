@@ -98,7 +98,8 @@ def _get_rf(p, d):
 def project_detail_data(project_id):
     try:
         project = Project.objects.get(pk=project_id)
-        rf = ResearchFolder.objects.filter(project=project)
+        #rf = ResearchFolder.objects.filter(project=project)
+        rf = ResearchFolder.objects.filter(project=project, deleted__isnull=True)
         data = CustomObject()
         data.project = project
         data.research_folders = []
@@ -134,7 +135,7 @@ def project_detail_data(project_id):
                 s = 0
             else:
                 s = VaultStats.objects.filter(vault_folder=vf).latest('collected').size
-                datasets = VaultDataset.objects.filter(vault_folder=vf)
+                datasets = VaultDataset.objects.filter(vault_folder=vf, deleted__isnull=True)
                 for dataset in datasets:
                     ds_data = dataset
                     ds_data.name = dataset.yoda_name
