@@ -55,7 +55,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
 class PersonAdmin(admin.ModelAdmin):
     ordering = ["email"]
-    list_display = ["lastname", "firstname", "email", "vunetid"]
+    list_display = ["email", "lastname", "firstname", "vunetid"]
 
 class DepartmentAdmin(admin.ModelAdmin):
     ordering = ["faculty", "name"]
