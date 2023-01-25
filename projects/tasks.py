@@ -64,10 +64,24 @@ def process_irods_stats():
                 for group in data['groups']:
                     if group.startswith('research-'):
                         logger.info(f'processing group {group} in {file}')
+                        internal_users = 0
+                        external_users = 0
+                        for email in data['groups'][group]['members']:
+                            if email.endswith(("vu.nl", "acta.nl")):
+                                internal_users += 1
+                            else:
+                                external_users += 1
+                        for email in data['groups'][group]['read_members']:
+                            if email.endswith(("vu.nl", "acta.nl")):
+                                internal_users += 1
+                            else:
+                                external_users += 1
                         researchgroup_cnt += 1
                         researchfolder, created = ResearchFolder.objects.get_or_create(yoda_name=group)
                         researchfolder.category = data['groups'][group]['category']
                         researchfolder.data_classification = data['groups'][group]['data_classification']
+                        researchfolder.internal_users = internal_users
+                        researchfolder.external_users = external_users
                         researchfolder.save()
 
                         vaultname = researchfolder.yoda_name.replace('research-', 'vault-', 1)

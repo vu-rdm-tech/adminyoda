@@ -63,9 +63,11 @@ class Project(models.Model):
 
 class ResearchFolder(models.Model):
     category = models.CharField(max_length=255)
-    data_classification = models.CharField(max_length=255, default="")
+    data_classification = models.CharField(max_length=255, default="Basic")
     yoda_name = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.SET_NULL, blank=True, null=True)
+    internal_users = models.IntegerField(default=0)
+    external_users = models.IntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     deleted = models.DateTimeField(blank=True, null=True)
