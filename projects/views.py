@@ -98,8 +98,7 @@ def _get_rf(p, d):
 def project_detail_data(project_id):
     try:
         project = Project.objects.get(pk=project_id)
-        #rf = ResearchFolder.objects.filter(project=project)
-        rf = ResearchFolder.objects.filter(project=project, deleted__isnull=True)
+        rf = ResearchFolder.objects.filter(project=project)
         data = CustomObject()
         data.project = project
         data.research_folders = []
@@ -107,43 +106,46 @@ def project_detail_data(project_id):
         total_research_size = 0
         total_vault_size = 0
         for f in rf:
+            show = True
+            deleted = False
+            vf = VaultFolder.objects.get(research_folder=f)
             if f.deleted is not None:
                 deleted = True
-            else:
-                deleted = False
-            rf_data = CustomObject()
-            rf_data.datamanagers = []
-            rf_data.category = f.category
-            dms = Datamanager.objects.filter(category=f.category)
-            rf_data.datamanagers_object = len(dms)
-            for dm in dms:
-                rf_data.datamanagers.append(f'{dm.user.firstname} {dm.user.lastname} ({dm.user.email} )')
-            rf_data.research_name = f.yoda_name
-            if deleted:
-                rf_data.research_name = f'{rf_data.research_name} [deleted]'
-                s = 0
-            else:
-                latest_stats = ResearchStats.objects.filter(research_folder=f).latest('collected')
-                s = latest_stats.size + latest_stats.revision_size
-            rf_data.research_size = friendly_size(s)
-            total_research_size += s
-            vf = VaultFolder.objects.get(research_folder=f)
-            rf_data.vault_name = vf.yoda_name
-            rf_data.datasets = []
-            if vf.deleted is not None:
-                rf_data.vault_name = f'{rf_data.vault_name} [deleted]'
-                s = 0
-            else:
-                s = VaultStats.objects.filter(vault_folder=vf).latest('collected').size
-                datasets = VaultDataset.objects.filter(vault_folder=vf, deleted__isnull=True)
-                for dataset in datasets:
-                    ds_data = dataset
-                    ds_data.name = dataset.yoda_name
-                    ds_data.csize = friendly_size(dataset.size)
-                    rf_data.datasets.append(ds_data)
-            rf_data.vault_size = friendly_size(s)
-            total_vault_size += s
-            data.research_folders.append(rf_data)
+                if vf.deleted is not None:
+                    show = False # hide groups that were completely deleted
+            if show:
+                rf_data = CustomObject()
+                rf_data.datamanagers = []
+                rf_data.category = f.category
+                dms = Datamanager.objects.filter(category=f.category)
+                rf_data.datamanagers_object = len(dms)
+                for dm in dms:
+                    rf_data.datamanagers.append(f'{dm.user.firstname} {dm.user.lastname} ({dm.user.email} )')
+                rf_data.research_name = f.yoda_name
+                if deleted:
+                    rf_data.research_name = f'{rf_data.research_name} [deleted]'
+                    s = 0
+                else:
+                    latest_stats = ResearchStats.objects.filter(research_folder=f).latest('collected')
+                    s = latest_stats.size + latest_stats.revision_size
+                rf_data.research_size = friendly_size(s)
+                total_research_size += s
+                rf_data.vault_name = vf.yoda_name
+                rf_data.datasets = []
+                if vf.deleted is not None:
+                    rf_data.vault_name = f'{rf_data.vault_name} [deleted]'
+                    s = 0
+                else:
+                    s = VaultStats.objects.filter(vault_folder=vf).latest('collected').size
+                    datasets = VaultDataset.objects.filter(vault_folder=vf, deleted__isnull=True)
+                    for dataset in datasets:
+                        ds_data = dataset
+                        ds_data.name = dataset.yoda_name
+                        ds_data.csize = friendly_size(dataset.size)
+                        rf_data.datasets.append(ds_data)
+                rf_data.vault_size = friendly_size(s)
+                total_vault_size += s
+                data.research_folders.append(rf_data)
         data.research_size_bytes = total_research_size
         data.vault_size_bytes = total_vault_size
         data.research_size = friendly_size(total_research_size)
