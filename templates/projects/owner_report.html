@@ -64,9 +64,29 @@
     {% endfor %}
 </table>
 <br>
-
-Current cost total: {{ total_cost }} euro for the active Research data.<br>
-You will be billed for active storage used on December 1st
+<b>Monthly project costs:</b>
+<table>
+    <tr>
+        {% for v in research_stats.0 %}
+            <th>{{ v }}</th>
+        {% endfor %}
+    </tr>
+    <tr>
+        {% for v in research_stats.1 %}
+            <td>{{ v }}</td>
+        {% endfor %}
+    </tr>
+    <tr>
+        {% for v in research_stats.2 %}
+            <td>{{ v }}</td>
+        {% endfor %}
+    </tr>
+</table>
+Total cost so far for this year: {{ total_cost }} euro
+<p>
+You will be billed for the total in december.
+</p>
+<b>Cost model (per year):</b>
 <table>
     <tr>
         <td>size < 500GB</td>
@@ -78,7 +98,7 @@ You will be billed for active storage used on December 1st
     </tr>
     <tr>
         <td>Per 2TB block above 2TB</td>
-        <td>€100,-</td>
+        <td>€250,-</td>
     </tr>
 </table>
 

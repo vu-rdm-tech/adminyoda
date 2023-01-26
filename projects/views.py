@@ -1,11 +1,9 @@
-import math
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from .models import Project, MiscStats, VaultDataset, ResearchFolder, Department, VaultFolder, VaultStats, \
     ResearchStats, Person, Datamanager
 from datetime import datetime
 
-BLOCK_MONTH_COST = 8.0
 GB = 1024 * 1024 * 1024
 start_year = 2021
 today = datetime.now()
@@ -28,11 +26,6 @@ def friendly_size(num):
         if num < 1024.0:
             return "%3.1f %s" % (num, x)
         num /= 1024.0
-
-def calculate_blocks(bytes, block_size_GB=2048):
-    bytes = bytes + 1 # avoid 0
-    gigabytes = bytes/(1024*1024*1024)
-    return int(math.ceil(gigabytes/block_size_GB))
 
 # Create your views here.
 def projects_index(request):
