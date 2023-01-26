@@ -30,12 +30,16 @@ def cleanup():
             collected=date.today(),
             defaults={'size': 0, 'revision_size': 0},
         )
+        logger.info(f'Setting ResearchFolder {f.yoda_name} as deleted.')
     for f in vf:
         VaultStats.objects.update_or_create(
             vault_folder=f,
             collected=date.today(),
             defaults={'size': 0},
         )
+        logger.info(f'Setting VaultFolder {f.yoda_name} as deleted.')
+    for d in vd:
+        logger.info(f'Setting VaulDataset {d.yoda_name} as deleted.')
     vd.update(deleted=now(), size=0)
     vf.update(deleted=now())
     rf.update(deleted=now())
