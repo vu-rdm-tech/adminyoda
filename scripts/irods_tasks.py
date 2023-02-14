@@ -1,3 +1,4 @@
+from config import DATA_DIR
 import logging
 import os
 from datetime import datetime
@@ -10,7 +11,7 @@ year = today.strftime('%Y')
 week = today.strftime('%U')
 
 def setup_logging():
-    LOGFILE = f'/home/peter/adminyoda/scripts/log/adminyoda-tasks_{today.year}{today.strftime("%m")}.log'
+    LOGFILE = f'{DATA_DIR}log/adminyoda-tasks_{today.year}{today.strftime("%m")}.log'
     logger = logging.getLogger('irods_tasks')
     hdlr = logging.FileHandler(LOGFILE)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -21,11 +22,10 @@ def setup_logging():
     return logger
 
 def collect():
-    datadir = '/home/peter/adminyoda/scripts/data'
     filename = f'yodastats-{year}{week}.json'
 
-    stats_file = f'{datadir}/{filename}'
-    archived_stats_file = f'{datadir}/archived/{filename}'
+    stats_file = f'{DATA_DIR}/{filename}'
+    archived_stats_file = f'{DATA_DIR}/archived/{filename}'
 
     logger.info(f'start script {os.path.realpath(__file__)}')
     if os.path.exists(stats_file):

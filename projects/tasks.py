@@ -7,6 +7,7 @@ import logging
 from projects.models import ResearchFolder, VaultFolder, VaultDataset, VaultStats, ResearchStats, Person, Datamanager, \
     MiscStats, Project
 from django.utils.timezone import now, make_aware
+from django.db.models.base import ObjectDoesNotExist
 
 DATADIR=os.environ.get('DATADIR')
 logger = logging.getLogger(__name__)
@@ -122,24 +123,27 @@ def process_irods_stats():
                             defaults={'size': researchsize, 'revision_size': revisionsize})
                         research_size_total += researchsize
                     elif collection.startswith('vault-'):
-                        vaultfolder = VaultFolder.objects.get(yoda_name=collection)
-                        for set in data['collections'][collection]['datasets']:
-                            dataset_cnt += 1
-                            dataset, created = VaultDataset.objects.get_or_create(yoda_name=set,
-                                                                                  vault_folder=vaultfolder)
-                            dataset.status = data['collections'][vaultfolder.yoda_name]['datasets'][set]['status']
-                            dataset.retention = int(data['collections'][vaultfolder.yoda_name]['datasets'][set]['retention_period'])
-                            dataset.data_classification = data['collections'][vaultfolder.yoda_name]['datasets'][set]['data_classification']
-                            dataset.size = data['collections'][vaultfolder.yoda_name]['datasets'][set]['size']
-                            if dataset.status == 'PUBLISHED':
-                                published_cnt += 1
-                            dataset.save()
-                        vaultsize = data['collections'][collection]['size']
-                        VaultStats.objects.update_or_create(
-                            vault_folder=vaultfolder,
-                            collected=filedate,
-                            defaults={'size': vaultsize})
-                        vault_size_total += vaultsize
+                        try:
+                            vaultfolder = VaultFolder.objects.get(yoda_name=collection)
+                            for set in data['collections'][collection]['datasets']:
+                                dataset_cnt += 1
+                                dataset, created = VaultDataset.objects.get_or_create(yoda_name=set,
+                                                                                      vault_folder=vaultfolder)
+                                dataset.status = data['collections'][vaultfolder.yoda_name]['datasets'][set]['status']
+                                dataset.retention = int(data['collections'][vaultfolder.yoda_name]['datasets'][set]['retention_period'])
+                                dataset.data_classification = data['collections'][vaultfolder.yoda_name]['datasets'][set]['data_classification']
+                                dataset.size = data['collections'][vaultfolder.yoda_name]['datasets'][set]['size']
+                                if dataset.status == 'PUBLISHED':
+                                    published_cnt += 1
+                                dataset.save()
+                            vaultsize = data['collections'][collection]['size']
+                            VaultStats.objects.update_or_create(
+                                vault_folder=vaultfolder,
+                                collected=filedate,
+                                defaults={'size': vaultsize})
+                            vault_size_total += vaultsize
+                        except ObjectDoesNotExist:
+                            logger.warning(f'VaultFolder {collection} does not exist in the database. Is it orphaned?')
                 MiscStats.objects.update_or_create(collected=filedate, defaults={
                     'size_total': data['misc']['size_total'],
                     'size_research': research_size_total,
@@ -160,5 +164,5 @@ def process_irods_stats():
 
     logger.info(f'{cnt} files processed')
 
-# process_irods_stats()
+process_irods_stats()
 #cleanup()
