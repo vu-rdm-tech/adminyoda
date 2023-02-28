@@ -42,7 +42,7 @@ def projects_index_table(request):
         d['faculty'] = p.department.faculty
         d['requested_size'] = p.requested_size
         d['limit'] = p.storage_limit
-        d['created'] = p.created
+        d['request_date'] = p.request_date
         d = _get_rf_table(p, d)
         data.append(d)
     d = {}

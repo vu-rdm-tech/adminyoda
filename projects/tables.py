@@ -15,12 +15,12 @@ class ProjectTable(tables.Table):
     num_published = tables.Column()
     # size_warning = tables.Column()
     size = tables.Column()
-    created = tables.Column()
+    request_date = tables.Column()
 
     def render_id(self, value):
         return format_html(f'<a href="{value}">{value}</>')
 
-    def render_created(self, value):
+    def render_request_date(self, value):
         return value.strftime("%Y-%m-%d")
 
     class Meta:
