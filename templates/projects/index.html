@@ -1,47 +1,12 @@
 {% extends "base.html" %}
-
+{% load render_table from django_tables2 %}
 {% block content %}
-    <h1>Project list</h1>
-    <table class="table">
-        <thead>
-        <th scope="col">Title</th>
-        <th scope="col">Faculty</th>
-        <th scope="col">Department</th>
-        <th scope="col">Groups</th>
-        <th scope="col">Datasets</th>
-        <th scope="col">Published</th>
-        <th scope="col">Size</th>
-        <th scope="col">Requested size</th>
-        </thead>
-        <tbody>
-        {% for p in projects %}
-            {% if p.title == '-' %}
-            <tr class="bg-danger text-white">
-            {% else %}
-            <tr>
-            {% endif %}
-                <td><a href="{{ p.id }}">{{ p.title }}</a></td>
-                <td>{{ p.faculty }}</td>
-                <td>{{ p.department }}</td>
-                <td>{{ p.num_groups }}</td>
-                <td>{{ p.num_dataset }}</td>
-                <td>{{ p.num_published }}</td>
-                {% if d.size_warning %}
-                    <td class="bg-danger text-white">{{ p.size }}</td>
-                    <td class="bg-danger text-white">{{ p.requested_size }}</td>
-                {% else %}
-                    <td>{{ p.size }}</td>
-                    <td>{{ p.requested_size }}</td>
-                {% endif %}
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <canvas id="faculty-chart" data-url="{% url 'faculty_chart_json' %}"></canvas>
+    <h1>Project table</h1>
+    {% render_table table %}
+        <canvas id="faculty-chart" data-url="{% url 'faculty_chart_json' %}"></canvas>
     <script>
         $(function () {
             setPieChart($("#faculty-chart"), 'Projects per faculty', false);
         });
     </script>
 {% endblock %}
-
