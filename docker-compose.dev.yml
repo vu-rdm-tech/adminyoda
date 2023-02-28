@@ -27,7 +27,6 @@ services:
 
   adminyoda-task:
     container_name: adminyoda-task
-    restart: always
     build:
       context: .
       args:
@@ -53,18 +52,18 @@ services:
   adminyoda-db:
     container_name: ${DB_HOST}
     image: postgres:14
-    #restart: always
     environment:
       POSTGRES_PASSWORD: ${DB_PW}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_DB: ${DB_NAME}
       PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "15432:5432"
     volumes:
       - /docker/adminyoda/db:/var/lib/postgresql/data
 
   nginx:
     image: nginx:latest
-    restart: always
     container_name: nginx
     depends_on:
       - adminyoda-web

@@ -3,6 +3,8 @@ from django.shortcuts import render
 from .models import Project, MiscStats, VaultDataset, ResearchFolder, Department, VaultFolder, VaultStats, \
     ResearchStats, Person, Datamanager
 from datetime import datetime
+from .tables import ProjectTable
+from django_tables2 import RequestConfig
 
 GB = 1024 * 1024 * 1024
 start_year = 2021
@@ -27,31 +29,34 @@ def friendly_size(num):
             return "%3.1f %s" % (num, x)
         num /= 1024.0
 
+
 # Create your views here.
-def projects_index(request):
+def projects_index_table(request):
     pr = Project.objects.filter(delete_date__isnull=True).all().order_by('title')
     data = []
     for p in pr:
-        d = CustomObject()
-        d.id = p.id
-        d.title = p.title
-        d.department = p.department.name
-        d.faculty = p.department.faculty
-        d.requested_size = friendly_size(p.requested_size * GB)
-        d.limit = friendly_size(p.storage_limit * GB)
-        d = _get_rf(p, d)
+        d = {}
+        d['id'] = p.id
+        d['title'] = p.title
+        d['department'] = p.department.name
+        d['faculty'] = p.department.faculty
+        d['requested_size'] = p.requested_size
+        d['limit'] = p.storage_limit
+        d['created'] = p.created
+        d = _get_rf_table(p, d)
         data.append(d)
-    d = CustomObject()
-    d = _get_rf(None, d)  # unconnected research folders
-    d.title = '-'
-    d.department = '-'
-    d.faculty = '-'
-    if d.num_groups > 0:
+    d = {}
+    d = _get_rf_table(None, d)  # unconnected research folders
+    d['title'] = 'Not registered'
+    d['department'] = '-'
+    d['faculty'] = '-'
+    if d['num_groups'] > 0:
         data.append(d)
-    context = {
-        'projects': data
-    }
-    return render(request, 'projects/index.html', context=context)
+    table = ProjectTable(data)
+    RequestConfig(request, paginate={'per_page': 10}).configure(table)
+    return render(request, "projects/index.html", {
+        "table": table
+    })
 
 
 def projects_storage(request):
@@ -59,15 +64,15 @@ def projects_storage(request):
     return render(request, 'projects/storage.html', context=context)
 
 
-def _get_rf(p, d):
+def _get_rf_table(p, d):
     if p is None:
         rf = ResearchFolder.objects.filter(project__isnull=True)
-        d.num_groups = ResearchFolder.objects.filter(project__isnull=True, deleted__isnull=True).count()
+        d['num_groups'] = ResearchFolder.objects.filter(project__isnull=True, deleted__isnull=True).count()
     else:
         rf = ResearchFolder.objects.filter(project=p)
-        d.num_groups = ResearchFolder.objects.filter(project=p, deleted__isnull=True).count()
-    d.num_dataset = 0
-    d.num_published = 0
+        d['num_groups'] = ResearchFolder.objects.filter(project=p, deleted__isnull=True).count()
+    d['num_dataset'] = 0
+    d['num_published'] = 0
     size = 0
     for f in rf:
         if f.deleted is None:
@@ -78,15 +83,15 @@ def _get_rf(p, d):
             size = size + VaultStats.objects.filter(vault_folder=vf).latest('collected').size
             cnt = VaultDataset.objects.filter(vault_folder=vf).count()
             pubcnt = VaultDataset.objects.filter(status='PUBLISHED', vault_folder=vf).count()
-            d.num_dataset = d.num_dataset + cnt
-            d.num_published = d.num_published + pubcnt
-    d.size_warning = False
+            d['num_dataset'] = d['num_dataset'] + cnt
+            d['num_published'] = d['num_published'] + pubcnt
+    d['size_warning'] = False
     if p is not None:
         if size > (p.storage_limit * GB):
-            d.size_warning = True
-    d.size = friendly_size(size)
-
+            d['size_warning'] = True
+    d['size'] = round(size / GB, 2)
     return d
+
 
 def project_detail_data(project_id):
     try:
@@ -105,7 +110,7 @@ def project_detail_data(project_id):
             if f.deleted is not None:
                 deleted = True
                 if vf.deleted is not None:
-                    show = False # hide groups that were completely deleted
+                    show = False  # hide groups that were completely deleted
             if show:
                 rf_data = CustomObject()
                 rf_data.datamanagers = []
@@ -147,9 +152,10 @@ def project_detail_data(project_id):
         return None
     return data
 
+
 def project_detail(request, project_id):
     data = project_detail_data(project_id)
-    if data==None:
+    if data == None:
         raise Http404("Project does not exist")
 
     return render(request, 'projects/details.html', context={'data': data})
@@ -157,12 +163,15 @@ def project_detail(request, project_id):
 
 def _vaultstats_quarterly(vault_folder, year, month):
     return VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year,
-                                     collected__month__lte=month, collected__month__gt=month-3).order_by('collected').last()
+                                     collected__month__lte=month, collected__month__gt=month - 3).order_by(
+        'collected').last()
 
 
 def _researchstats_quarterly(research_folder, year, month):
     return ResearchStats.objects.filter(research_folder=research_folder, collected__year=year,
-                                        collected__month__lte=month, collected__month__gt=month-3).order_by('collected').last()
+                                        collected__month__lte=month, collected__month__gt=month - 3).order_by(
+        'collected').last()
+
 
 def _vaultstats_month(vault_folder, year, month):
     return VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year,
@@ -173,6 +182,7 @@ def _researchstats_month(research_folder, year, month):
     return ResearchStats.objects.filter(research_folder=research_folder, collected__year=year,
                                         collected__month=month).order_by('collected').last()
 
+
 def _monthly_research_stats(folder):
     stats = []
     last_size = 0
@@ -181,7 +191,7 @@ def _monthly_research_stats(folder):
         for month in range(1, 13):
             s = _researchstats_month(folder, year, month)
             if s is not None:
-                s.label = f'{year}-{str(month).rjust(2,"0")}'
+                s.label = f'{year}-{str(month).rjust(2, "0")}'
                 s.delta = s.size - last_size
                 s.revision_delta = s.revision_size - last_revision_size
                 last_size = s.size
@@ -190,6 +200,7 @@ def _monthly_research_stats(folder):
                 stats.append(s)
     return stats
 
+
 def _monthly_vault_stats(folder):
     stats = []
     last_size = 0
@@ -197,11 +208,12 @@ def _monthly_vault_stats(folder):
         for month in range(1, 13):
             s = _vaultstats_month(folder, year, month)
             if s is not None:
-                s.label = f'{year}-{str(month).rjust(2,"0")}'
+                s.label = f'{year}-{str(month).rjust(2, "0")}'
                 s.delta = s.size - last_size
                 last_size = s.size
                 stats.append(s)
     return stats
+
 
 def _quarterly_research_stats(folder):
     quarters = [3, 6, 9, 12]
@@ -221,6 +233,7 @@ def _quarterly_research_stats(folder):
                 stats.append(s)
             q += 1
     return stats
+
 
 def _quarterly_vault_stats(folder):
     quarters = [3, 6, 9, 12]
@@ -246,15 +259,15 @@ def project_research_stats(project_id):
     vault_stats = {}
     labels = []
     for f in rf:
-        #rstats = _quarterly_research_stats(f)
+        # rstats = _quarterly_research_stats(f)
         rstats = _monthly_research_stats(f)
         vf = VaultFolder.objects.get(research_folder=f)
-        #vstats = _quarterly_vault_stats(vf)
+        # vstats = _quarterly_vault_stats(vf)
         vstats = _monthly_vault_stats(vf)
         i = 0
         # Now merge these on label
         for rstat in rstats:
-            label=rstat.label
+            label = rstat.label
             if label not in labels:
                 labels.append(label)
             if label not in research_stats:
@@ -270,7 +283,7 @@ def project_research_stats(project_id):
             research_stats[label]['revision_size'] += rstat.revision_size
             research_stats[label]['revision_delta'] += rstat.revision_delta
         for vstat in vstats:
-            label=vstat.label
+            label = vstat.label
             if label not in labels:
                 labels.append(label)
             if label not in vault_stats:
@@ -369,6 +382,7 @@ def project_research_revision_size_chart_json(request, project_id):
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
+
 def project_vault_size_chart_json(request, project_id):
     vault = []
     div = (1024 * 1024 * 1024)
@@ -387,6 +401,7 @@ def project_vault_size_chart_json(request, project_id):
         },
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
 
 def project_delta_chart_json(request, project_id):
     research = []
