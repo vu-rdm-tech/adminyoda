@@ -129,18 +129,20 @@ def size_chart_json(request):
         vault.append(round(s.size_vault / div, 2))
     datasets = [
         {
-            'label': 'Research',
-            'backgroundColor': 'rgba(253,192,134, 0.4)',
-            'borderColor': 'rgba(253,192,134)',
-            'borderWidth': 1,
-            'data': research,
-        },
-        {
             'label': 'Vault',
-            'backgroundColor': 'rgba(127,201,127, 0.4)',
-            'borderColor': 'rgba(127,201,127)',
+            # d9f89a
+            'backgroundColor': 'rgb(217, 248, 154, 0.4)',
+            'borderColor': 'rgb(217, 248, 154)',
             'borderWidth': 1,
             'data': vault,
+        },
+        {
+            'label': 'Research',
+            # ed9ac8
+            'backgroundColor': 'rgba(237, 154, 200, 0.4)',
+            'borderColor': 'rgba(237, 154, 200)',
+            'borderWidth': 1,
+            'data': research,
         },
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
@@ -157,18 +159,18 @@ def dataset_chart_json(request):
         published.append(s.published_total)
     datasets = [
         {
-            'label': 'archived',
-            'backgroundColor': 'rgba(253,192,134, 0.4)',
-            'borderColor': 'rgba(253,192,134)',
-            'borderWidth': 1,
-            'data': archived,
-        },
-        {
             'label': 'published',
-            'backgroundColor': 'rgba(127,201,127, 0.4)',
-            'borderColor': 'rgba(127,201,127)',
+            'backgroundColor': 'rgba(155,214,215,0.4)',
+            'borderColor': 'rgba(155,214,215)',
             'borderWidth': 1,
             'data': published,
+        },
+        {
+            'label': 'archived',
+            'backgroundColor': 'rgba(255,199,152,0.4)',
+            'borderColor': 'rgba(255,199,152)',
+            'borderWidth': 1,
+            'data': archived,
         },
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})

@@ -345,8 +345,8 @@ def project_research_size_chart_json(request, project_id):
     datasets = [
         {
             'label': 'Research',
-            'backgroundColor': 'rgba(253,192,134, 0.4)',
-            'borderColor': 'rgba(253,192,134)',
+            'backgroundColor': 'rgba(237, 154, 200, 0.4)',
+            'borderColor': 'rgba(237, 154, 200)',
             'borderWidth': 1,
             'data': research,
         },
@@ -367,8 +367,8 @@ def project_research_revision_size_chart_json(request, project_id):
     datasets = [
         {
             'label': 'Research',
-            'backgroundColor': 'rgba(253,192,134, 0.4)',
-            'borderColor': 'rgba(253,192,134)',
+            'backgroundColor': 'rgba(237, 154, 200, 0.4)',
+            'borderColor': 'rgba(237, 154, 200)',
             'borderWidth': 1,
             'data': research,
         },
@@ -394,8 +394,8 @@ def project_vault_size_chart_json(request, project_id):
     datasets = [
         {
             'label': 'Vault',
-            'backgroundColor': 'rgba(127,201,127, 0.4)',
-            'borderColor': 'rgba(127,201,127)',
+            'backgroundColor': 'rgb(217, 248, 154, 0.4)',
+            'borderColor': 'rgb(217, 248, 154)',
             'borderWidth': 1,
             'data': vault,
         },
@@ -416,15 +416,15 @@ def project_delta_chart_json(request, project_id):
     datasets = [
         {
             'label': 'Research',
-            'backgroundColor': 'rgba(253,192,134, 0.4)',
-            'borderColor': 'rgba(253,192,134)',
+            'backgroundColor': 'rgba(237, 154, 200, 0.4)',
+            'borderColor': 'rgba(237, 154, 200)',
             'borderWidth': 1,
             'data': research,
         },
         {
             'label': 'Vault',
-            'backgroundColor': 'rgba(127,201,127, 0.4)',
-            'borderColor': 'rgba(127,201,127)',
+            'backgroundColor': 'rgb(217, 248, 154, 0.4)',
+            'borderColor': 'rgb(217, 248, 154)',
             'borderWidth': 1,
             'data': vault,
         },
@@ -447,8 +447,8 @@ def project_delta_with_revision_chart_json(request, project_id):
     datasets = [
         {
             'label': 'Research',
-            'backgroundColor': 'rgba(253,192,134, 0.4)',
-            'borderColor': 'rgba(253,192,134)',
+            'backgroundColor': 'rgba(237, 154, 200, 0.4)',
+            'borderColor': 'rgba(237, 154, 200)',
             'borderWidth': 1,
             'data': research,
         },
