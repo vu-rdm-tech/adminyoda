@@ -60,6 +60,9 @@ class PersonAdmin(admin.ModelAdmin):
 class DepartmentAdmin(admin.ModelAdmin):
     ordering = ["faculty", "name"]
 
+class BudgetAdmin(admin.ModelAdmin):
+    ordering = ["code"]
+
 class ResearchAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         return False
