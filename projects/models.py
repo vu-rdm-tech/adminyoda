@@ -10,6 +10,11 @@ class Person(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['vunetid'], name='unique_vunetid')
+        ]
+
     def __str__(self):
         return f'{self.email} | {self.lastname}, {self.firstname}'
 
@@ -21,6 +26,11 @@ class Department(models.Model):
     institute = models.CharField(max_length=255, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['abbreviation', 'faculty'], name='unique_abbreviation_faculty')
+        ]
 
     def __str__(self):
         return f'{self.faculty} {self.institute} {self.name}'
@@ -36,6 +46,11 @@ class Budget(models.Model):
     vunetid = models.CharField(max_length=6)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['code'], name='unique_code')
+        ]
 
     def __str__(self):
         return self.code
