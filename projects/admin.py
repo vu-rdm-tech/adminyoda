@@ -59,9 +59,11 @@ class PersonAdmin(admin.ModelAdmin):
 
 class DepartmentAdmin(admin.ModelAdmin):
     ordering = ["faculty", "name"]
+    list_display = ["faculty", "name", "abbreviation"]
 
 class BudgetAdmin(admin.ModelAdmin):
     ordering = ["code"]
+    list_display = ["code", "type", "vunetid"]
 
 class ResearchAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
@@ -103,7 +105,7 @@ class VaultAdmin(admin.ModelAdmin):
 
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Project, ProjectAdmin)
-admin.site.register(Budget)
+admin.site.register(Budget, BudgetAdmin)
 admin.site.register(Department, DepartmentAdmin)
 admin.site.register(ResearchFolder, ResearchAdmin)
 admin.site.register(VaultFolder, VaultAdmin)
