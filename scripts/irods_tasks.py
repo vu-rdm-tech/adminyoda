@@ -23,24 +23,24 @@ def setup_logging():
 
 def collect():
     filename = f'yodastats-{year}{week}.json'
-
-    stats_file = f'{DATA_DIR}/{filename}'
-    archived_stats_file = f'{DATA_DIR}/archived/{filename}'
-
+    stats_file = f'{DATA_DIR}data/{filename}'
+    archived_stats_file = f'{DATA_DIR}data/archived/{filename}'
+    irodsdata = IrodsData()
     logger.info(f'start script {os.path.realpath(__file__)}')
+    irodsdata.logger = logger
+    irodsdata.get_session()
     if os.path.exists(stats_file):
         logger.info(f'stats already collected in {stats_file}')
     elif os.path.exists(archived_stats_file):
         logger.info(f'stats already collected and processed from {archived_stats_file}')
     else:
-        irodsdata = IrodsData()
-        irodsdata.logger=logger
         logger.info('start data collection')
         data=irodsdata.collect()
         data['collected'] = today_str
         logger.info(f'write stats to {stats_file}')
         with open(stats_file, 'w') as fp:
             json.dump(data, fp)
+    irodsdata.close_session()
     logger.info('script finished')
 
 logger = setup_logging()

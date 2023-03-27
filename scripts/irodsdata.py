@@ -17,7 +17,6 @@ class IrodsData():
         self.data = {'collections': {}, 'groups': []}
 
     def collect(self):
-        self._get_session()
         self.data['collections'] = self.get_home_collections()
         self.data['groups'] = self.get_groups()
 
@@ -56,14 +55,14 @@ class IrodsData():
         self.data['misc']['internal_users_total'] = internal
         self.data['misc']['external_users_total'] = external
         self.data['misc']['users_total'] = internal + external
-        self._close_session()
         return self.data
 
-    def _close_session(self):
+    def close_session(self):
         self.session.cleanup()
         self.session = None
+        logger.info('irods session closed')
 
-    def _get_session(self):
+    def get_session(self):
         try:
             logger.info('setup irods session')
             self.session = setup_session()
