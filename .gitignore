@@ -113,5 +113,6 @@ GitHub.sublime-settings
 .history
 settings.py
 scripts/config.py
+scripts/setup_session.py
 
 *.json
