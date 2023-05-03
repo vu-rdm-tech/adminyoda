@@ -68,8 +68,6 @@ class PersonAdmin(admin.ModelAdmin):
     list_display = ["email", "lastname", "firstname", "vunetid"]
 
 class DepartmentAdmin(admin.ModelAdmin):
-    def has_add_permission(self, request, obj=None):
-        return False
     def has_delete_permission(self, request, obj=None):
         return False
     ordering = ["faculty", "name"]
@@ -81,8 +79,6 @@ class DepartmentAdmin(admin.ModelAdmin):
         return Project.objects.filter(department=obj).count()
 
 class BudgetAdmin(admin.ModelAdmin):
-    def has_add_permission(self, request, obj=None):
-        return False
     def has_delete_permission(self, request, obj=None):
         return False
     ordering = ["code"]
