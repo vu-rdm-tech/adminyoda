@@ -16,6 +16,16 @@ def convert_bytes(num):
         num /= 1024.0
 
 
+class ProjectInline(admin.StackedInline):
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
+    fields = ('id','owner', 'department', 'request_date')
+    readonly_fields = ('id', 'owner', 'department', 'request_date', 'delete_date')
+    model=Project
+    show_change_link = True
+    extra = 0
 
 class ResearchFolderInline(admin.StackedInline):
     def has_add_permission(self, request, obj=None):
@@ -58,12 +68,31 @@ class PersonAdmin(admin.ModelAdmin):
     list_display = ["email", "lastname", "firstname", "vunetid"]
 
 class DepartmentAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
     ordering = ["faculty", "name"]
-    list_display = ["faculty", "name", "abbreviation"]
+    list_display = ["faculty", "name", "abbreviation", "projects"]
+    inlines=[
+        ProjectInline
+    ]
+    def projects(self, obj):
+        return Project.objects.filter(department=obj).count()
 
 class BudgetAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
     ordering = ["code"]
-    list_display = ["code", "type", "vunetid"]
+    list_display = ["code", "type", "vunetid", "projects"]
+
+    inlines=[
+        ProjectInline
+    ]
+    def projects(self, obj):
+        return Project.objects.filter(budget=obj).count()
 
 class ResearchAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
