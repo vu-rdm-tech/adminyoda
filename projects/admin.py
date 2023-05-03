@@ -16,39 +16,45 @@ def convert_bytes(num):
         num /= 1024.0
 
 
-class ProjectInline(admin.StackedInline):
+class ProjectInline(admin.TabularInline):
     def has_add_permission(self, request, obj=None):
         return False
     def has_delete_permission(self, request, obj=None):
         return False
-    fields = ('id','owner', 'department', 'request_date')
-    readonly_fields = ('id', 'owner', 'department', 'request_date', 'delete_date')
+    fields = ('id','owner', 'department', 'request_date', 'delete_date')
+    readonly_fields = ('owner', 'department', 'request_date', 'delete_date')
     model=Project
     show_change_link = True
     extra = 0
 
-class ResearchFolderInline(admin.StackedInline):
+class ResearchFolderInline(admin.TabularInline):
     def has_add_permission(self, request, obj=None):
         return False
     def has_delete_permission(self, request, obj=None):
         return False
+    fields = ('category', 'data_classification', 'internal_users', 'external_users', 'deleted')
+    readonly_fields = ('category', 'data_classification', 'internal_users', 'external_users', 'deleted')
     model=ResearchFolder
     extra = 0
 
-class VaultFolderInline(admin.StackedInline):
+class VaultFolderInline(admin.TabularInline):
     def has_add_permission(self, request, obj=None):
         return False
     def has_delete_permission(self, request, obj=None):
         return False
     model=VaultFolder
+    fields = ('yoda_name', 'deleted')
+    readonly_fields =  ('yoda_name', 'deleted')
     extra = 0
 
-class VaultDatasetInline(admin.StackedInline):
+class VaultDatasetInline(admin.TabularInline):
     def has_add_permission(self, request, obj=None):
         return False
     def has_delete_permission(self, request, obj=None):
         return False
     model=VaultDataset
+    fields = ('yoda_name', 'status', 'retention', 'size', 'data_classification', 'deleted')
+    readonly_fields = ('yoda_name', 'status', 'retention', 'size', 'data_classification', 'deleted')
     extra = 0
 
 class ProjectAdmin(admin.ModelAdmin):
