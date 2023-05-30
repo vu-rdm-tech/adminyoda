@@ -115,3 +115,5 @@ settings.py
 scripts/config.py
 
 *.json
+
+setup_session.py
