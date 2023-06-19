@@ -21,7 +21,7 @@ services:
       SECRET: ${SECRET}
     command: gunicorn adminyoda.wsgi:application --bind 0.0.0.0:8000
     volumes:
-      - /docker/adminyoda/log:/usr/app/log
+      - ${DOCKER_DATA}/adminyoda/log:/usr/app/log
 
   adminyoda-task:
     container_name: adminyoda-task
@@ -44,7 +44,7 @@ services:
       SECRET: ${SECRET}
     command: python manage.py qcluster
     volumes:
-      - /docker/adminyoda/log:/usr/app/log
+      - ${DOCKER_DATA}/adminyoda/log:/usr/app/log
       - ${DATASRC}:/data:rw
 
   adminyoda-db:
@@ -57,7 +57,7 @@ services:
       POSTGRES_DB: ${DB_NAME}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - /docker/adminyoda/db:/var/lib/postgresql/data
+      - ${DOCKER_DATA}/adminyoda/db:/var/lib/postgresql/data
 
   nginx:
     image: nginx:latest
@@ -70,5 +70,5 @@ services:
       - "80:80"
     volumes:
       - ./static:/static:ro  # for syncing with django source code
-      - /docker/adminyoda/nginx_conf:/etc/nginx/conf.d:ro
+      - ${DOCKER_DATA}/adminyoda/nginx_conf:/etc/nginx/conf.d:ro
       - /home/acme:/acme:ro

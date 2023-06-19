@@ -128,6 +128,7 @@ class ResearchStats(models.Model):
     research_folder = models.ForeignKey(ResearchFolder, on_delete=models.SET_NULL, blank=True, null=True)
     size = models.BigIntegerField()
     revision_size = models.BigIntegerField(default=0)
+    newest_file = models.DateTimeField(blank=True, null=True)
     collected = models.DateField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
 

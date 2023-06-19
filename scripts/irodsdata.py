@@ -1,6 +1,7 @@
 from irods.column import Like
 from irods.models import Collection, DataObject
 import logging
+from datetime import datetime
 from setup_session import setup_session
 
 logger = logging.getLogger('irods_tasks')
@@ -133,9 +134,19 @@ class IrodsData():
         if size is None: size = 0
         return size, result[DataObject.id]
 
+    def query_collection_newest(self, full_path):
+        query = self.session.query(DataObject.name, DataObject.create_time).filter(
+            Like(Collection.name, f'{full_path}%')).order_by(DataObject.create_time, order='desc').first()
+        try:
+            newest=query[DataObject.create_time]
+        except:
+            newest=datetime(1970, 1, 1)
+        return newest.isoformat()
+
     def get_stats(self, path, root='home'):
         stats = {}
         stats['size'], stats['count'] = self.query_collection_stats(full_path=f'/{self.session.zone}/{root}/{path}')
+        stats['newest'] = self.query_collection_newest(full_path=f'/{self.session.zone}/{root}/{path}')
         if path.startswith('vault-'):
             stats['datasets'] = {}
             coll = self.session.collections.get(f'/{self.session.zone}/{root}/{path}')

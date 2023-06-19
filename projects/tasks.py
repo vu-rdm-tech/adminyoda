@@ -117,10 +117,11 @@ def process_irods_stats():
                             revisionsize = data['revision_collections'][collection]['size']
                         except:
                             revisionsize = 0
+                        researchnewest = data['collections'][collection]['newest']
                         ResearchStats.objects.update_or_create(
                             research_folder=researchfolder,
                             collected=filedate,
-                            defaults={'size': researchsize, 'revision_size': revisionsize})
+                            defaults={'size': researchsize, 'revision_size': revisionsize, 'newest_file': researchnewest})
                         research_size_total += researchsize
                     elif collection.startswith('vault-'):
                         try:

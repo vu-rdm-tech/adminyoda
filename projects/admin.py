@@ -102,11 +102,14 @@ class ResearchAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    list_display = ("yoda_name", "category", "project", "size", "data_classification", "datasets", "deleted")
+    list_display = ("yoda_name", "category", "project", "size", "data_classification", "datasets", "newest_file", "deleted")
     ordering = ["yoda_name"]
     inlines=[
         VaultFolderInline,
     ]
+    def newest_file(self, obj):
+        return ResearchStats.objects.filter(research_folder=obj).latest('collected').newest_file
+
     def size(self, obj):
         # most recent size of the research folder
         researchsize = ResearchStats.objects.filter(research_folder=obj).latest('collected').size
