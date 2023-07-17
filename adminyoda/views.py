@@ -25,11 +25,12 @@ def _convert_bytes(num):
 
 # Create your views here.
 def index(request):
-    num_projects = Project.objects.filter(delete_date__isnull=True).all().count
+    num_projects = Project.objects.filter(delete_date__isnull=True).all().count()
     requested_size = Project.objects.aggregate(total=Sum('requested_size'))['total'] / 1024  # TB
     miscstats = MiscStats.objects.latest('collected')
     context = {
         'num_projects': num_projects,
+        'unregistered_groups': ResearchFolder.objects.filter(project__isnull=True, deleted__isnull=True).all().count,
         'total_size': _convert_bytes(miscstats.size_total + miscstats.revision_size),
         'requested_size': round(requested_size, 1),
         'num_users': miscstats.users_total,
@@ -178,10 +179,13 @@ def dataset_chart_json(request):
 def project_chart_json(request):
     labels = []
     data = []
+    unregistered_groups = ResearchFolder.objects.filter(project__isnull=True, deleted__isnull=True).all().count()
     miscstats = _quarterly_miscstats()
     for s in miscstats:
         labels.append(s.label)
         data.append(s.projects_total)
+    # count unregistered groups as projects
+    data[-1] += unregistered_groups
     datasets = [{
         'label': 'Projects',
         'backgroundColor': 'rgba(56,108,176, 0.4)',
