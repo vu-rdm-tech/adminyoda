@@ -1,18 +1,70 @@
 from projects.views import project_detail_data, project_research_stats, friendly_size
-from projects.models import Project
+from projects.models import Project, ResearchStats, ResearchFolder, VaultFolder, VaultDataset
 import logging
 import os
-import datetime
+from datetime import datetime
 import math
 from django.conf import settings
+import json
 
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
 
-def send_billing_report():
-    pass
+GB = 1024 * 1024 * 1024
+today = datetime.now()
+end_month = today.month
+start_year = today.year
+end_year = today.year
+
+def _researchstats_month(research_folder, year, month):
+    return ResearchStats.objects.filter(research_folder=research_folder, collected__year=year,
+                                        collected__month=month).order_by('collected').last()
+
+def _monthly_research_stats(folder, stats):
+    for year in range(start_year, end_year + 1):
+        if year not in stats:
+            stats[year] = {}
+        for month in range(1, 13):
+            if month not in stats[year]:
+                stats[year][month] = {}
+            s = _researchstats_month(folder, year, month)
+            if s is not None:
+                if 'size' not in stats[year][month]:
+                    stats[year][month]['size'] = s.size + s.revision_size
+                else:
+                    stats[year][month]['size'] += s.size + s.revision_size
+    return stats
+
+def _yearly_research_stats(folder, stats):
+    for year in range(start_year, end_year + 1):
+        if year not in stats:
+            stats[year] = {}
+            s = ResearchStats.objects.filter(research_folder=folder, collected__year=year).order_by('collected').last()
+            if s is not None:
+                if 'size' not in stats[year]:
+                    stats[year]['size'] = s.size + s.revision_size
+                else:
+                    stats[year]['size'] += s.size + s.revision_size
+    return stats
+
+def _vault_datasets_by_month(vault_folder, data):
+    for year in range(start_year, end_year + 1):
+        if year not in data:
+            data[year] = {}
+        for month in range(1, 13):
+            if month not in data[year]:
+                data[year][month] = []
+            datasets = VaultDataset.objects.filter(vault_folder=vault_folder, created__year=year, created__month=month, deleted__isnull=True).order_by('created')
+            for dataset in datasets:
+                data[year][month].append({
+                    'size': dataset.size,
+                    'retention': dataset.retention,
+                    'name': dataset.yoda_name,
+                })
+    return data
+        
 
 def research_cost_table(project_id):
     labels, research_stats, vault_stats = project_research_stats(project_id)
@@ -32,7 +84,7 @@ def calculate_blocks(bytes, block_size_GB=2048):
     gigabytes = bytes/(1024*1024*1024)
     return int(math.ceil(gigabytes/block_size_GB))
 
-def calculate_cost(size, free_block = 500, first_block = 2048, first_block_cost = 200, block_size = 2048, block_cost = 250):
+def calculate_cost(size, free_block = 500, first_block = 2048, first_block_cost = 200, block_size = 1024, block_cost = 250):
     total_cost = 0
     GBytes = 1024 * 1024 * 1024
     if size > free_block * GBytes:
@@ -65,3 +117,82 @@ def send_monthly_owner_reports():
             logger.error(f'unable to send monthly report email to {settings.REPORTS_MAIL_TEST_TO}, error: {e}')
 
 #send_monthly_owner_reports()
+
+def get_billing_data():
+    projects = Project.objects.filter(delete_date__isnull=True).all()
+    billing_data = {}
+    for project in projects:
+
+        rf = ResearchFolder.objects.filter(project=project)  # deleted folders should automatically disappear from the stats
+        research = {}
+        datasets = {}
+        research_yearly = {}
+        for f in rf:
+            research = _monthly_research_stats(f, research)
+            datasets = _vault_datasets_by_month(VaultFolder.objects.get(research_folder=f), datasets)
+            research_yearly = _yearly_research_stats(f, research_yearly)
+        billing_data[project.id] = {
+            'project': project.title,    
+            'owner_name': project.owner.firstname + ' ' + project.owner.lastname,
+            'owner_vunetid': project.owner.vunetid,
+            'budget_code': project.budget.code,
+            'budget_type': project.budget.type,
+            'budget_holder': project.budget.vunetid,
+            'research': research, 
+            'research_yearly': research_yearly,
+            'datasets': datasets
+        }
+    return billing_data
+
+def calculate_research_cost(size, free_block = 500, first_block = 2048, first_block_cost = 200, block_size = 2048, block_cost = 250):
+    total_cost = 0
+    GBytes = 1024 * 1024 * 1024
+    if size > free_block * GBytes:
+        total_cost = first_block_cost
+    if size > first_block * GBytes:
+        total_cost = total_cost + (calculate_blocks(size, block_size) - 1) * block_cost
+    return total_cost
+    
+
+def calculate_monthly_costs_per_project(year):
+    billing_data = get_billing_data()
+    for project in billing_data:
+        total_research_cost = 0
+        total_dataset_cost = 0
+        print(project)
+        if year in billing_data[project]['research']:
+            for month in billing_data[project]['research'][year]:
+                cost = 0
+                if 'size' in billing_data[project]['research'][year][month]:
+                    cost = calculate_cost(billing_data[project]['research'][year][month]['size']) / 12    
+                    billing_data[project]['research'][year][month]['cost'] = cost
+                    total_research_cost += cost
+            for month in billing_data[project]['datasets'][year]:
+                cost = 0
+                i = 0
+                for dataset in billing_data[project]['datasets'][year][month]:
+                    if 'size' in dataset:
+                        cost += calculate_cost(dataset['size'], first_block_cost=25, block_cost=25) * dataset['retention']
+                        total_dataset_cost += cost
+                    billing_data[project]['datasets'][year][month][i]['cost'] = cost
+                    i += 1
+            if 'size' in billing_data[project]['research_yearly'][year]:
+                billing_data[project]['yearly_research_cost'] = calculate_cost(billing_data[project]['research_yearly'][year]['size'])
+        billing_data[project]['total_dataset_cost'] = total_dataset_cost
+        billing_data[project]['total_research_cost'] = total_research_cost
+        billing_data[project]['total_cost'] = total_research_cost + total_dataset_cost
+    return billing_data
+
+def yearly_billing_report(year):
+    data=calculate_monthly_costs_per_project(year)
+    bill_data = {}
+    for project in data:
+        if data[project]['total_cost'] > 0:
+            bill_data[project] = data[project]
+    with open('costs.json', 'w') as fp:
+        json.dump(bill_data, fp)
+
+
+yearly_billing_report(2023)
+# TODO: create excel document with all the data
+
