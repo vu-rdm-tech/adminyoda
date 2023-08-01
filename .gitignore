@@ -115,5 +115,6 @@ settings.py
 scripts/config.py
 
 *.json
+*.xlsx
 
 setup_session.py
