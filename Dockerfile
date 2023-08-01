@@ -7,6 +7,6 @@ RUN apt-get update \
         postgresql-client \
     && rm -rf /var/lib/apt/lists/* \
     && pip install -r requirements.txt
-
+RUN chown -R 1001:1001 /usr/src/app/output
 EXPOSE 8000
 CMD sh -c "python manage.py runserver 0.0.0.0:8000"
