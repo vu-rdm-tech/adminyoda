@@ -57,7 +57,7 @@ def download_billing_report(request, year: int):
         month = today.month
     else:
         month = 12
-    filename = f'cost_{year}-{month}.xlsx'
+    filename = f'yoda_cost_report_{year}-{month}.xlsx'
 
     fl = open(fl_path, 'rb')
     mime_type, _ = mimetypes.guess_type(fl_path)
