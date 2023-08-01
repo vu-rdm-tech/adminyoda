@@ -130,7 +130,7 @@ def get_billing_data(start_year, end_year, end_month):
             datasets = _vault_datasets_by_month(VaultFolder.objects.get(research_folder=f), datasets, start_year, end_year, end_month)
             research_yearly = _yearly_research_stats(f, research_yearly, start_year, end_year)
         billing_data[project.id] = {
-            'project': project.title,
+            'project': f'{project.department.faculty}-{project.department.abbreviation}-{project.title}',
             'usage_details': f'https://adminyoda.labs.vu.nl/projects/{project.id}',
             'created': project.created.strftime("%Y-%m-%d"),
             'deleted': project.delete_date.strftime("%Y-%m-%d") if project.delete_date else '',
@@ -188,17 +188,41 @@ def yearly_billing_report(year):
         filename = f'output/yearly_cost_report_{year}{today.strftime("%U")}.xlsx'
     else:
         filename = f'output/yearly_cost_report_{year}.xlsx'
-    if not os.path.isfile(filename):
-        data=calculate_monthly_costs_per_project(year)
-        bill_data = {}
-        columns = ['project', 'usage_details', 'created', 'deleted', 'owner_name', 'owner_vunetid', 'budget_code', 'budget_type', 'budget_holder', 'total_research_cost', 'total_dataset_cost', 'total_cost', 'yearly_research_cost']
-        
-        for project in data:
-            if data[project]['total_cost'] > 0:
-                bill_data[project] = data[project]
-        with open(f'{filename[:-5]}.json', 'w') as fp:
-            json.dump(bill_data, fp)
-        df = pd.DataFrame.from_dict(data=bill_data, orient='index', columns=columns)
-        df.to_excel(filename)
+    #if not os.path.isfile(filename):
+    data=calculate_monthly_costs_per_project(year)
+    bill_data = {}
+    usage_data = {}
+    columns = ['project', 'usage_details', 'created', 'deleted', 'owner_name', 'owner_vunetid', 'budget_code', 'budget_type', 'budget_holder', 'total_research_cost', 'total_dataset_cost', 'total_cost', 'yearly_research_cost']
+    for project in data:
+        if data[project]['total_cost'] > 0:
+            bill_data[project] = data[project]
+            print(data[project]['project'])
+            usage_data[f'{data[project]["project"]}: size']={}
+            usage_data[f'{data[project]["project"]}: active_cost']={}
+            usage_data[f'{data[project]["project"]}: datasets']={}
+            usage_data[f'{data[project]["project"]}: archive_cost']={}
+            for month in data[project]['research'][year]:
+                
+                if 'size' in data[project]['research'][year][month]:
+                    usage_data[f'{data[project]["project"]}: size'][month] = data[project]['research'][year][month]['size'] / GB
+                    usage_data[f'{data[project]["project"]}: active_cost'][month] = data[project]['research'][year][month]['cost']
+                usage_data[f'{data[project]["project"]}: datasets'][month] = ''
+                usage_data[f'{data[project]["project"]}: archive_cost'][month] = 0
+                for dataset in data[project]['datasets'][year][month]:
+                    usage_data[f'{data[project]["project"]}: datasets'][month] += f"{dataset['size'] / GB} ({dataset['retention']})\n"
+                    usage_data[f'{data[project]["project"]}: archive_cost'][month] += dataset['cost']
+                
+            
+    with open(f'{filename[:-5]}.json', 'w') as fp:
+        json.dump(bill_data, fp)
+    df = pd.DataFrame.from_dict(data=bill_data, orient='index', columns=columns)
+    dfu = pd.DataFrame.from_dict(data=usage_data, orient='index')
+    writer = pd.ExcelWriter(filename)
+    df.to_excel(writer, sheet_name='billing')
+    dfu.to_excel(writer, sheet_name='usage')
+    writer.close()
     return filename
+
+# TO DO: add worksheet with monthly usage per project
+yearly_billing_report(2023)
 
