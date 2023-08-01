@@ -29,8 +29,17 @@
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <strong>Published datasets:</strong> {{ num_published }}
         </li>
-
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>Cost reports:</strong>
+            <span>
+                <a class="nav-link" href="{% url 'download_billing_report' year=previous_year %}">{{ previous_year }} (whole year)</a>
+    	        <a class="nav-link" href="{% url 'download_billing_report' year=current_year %}">{{ current_year }} (up until last stats)</a>
+            </span>
+        </li>
+        
     </ul>
+
+    
 
     <canvas id="project-chart" data-url="{% url 'project_chart_json' %}"></canvas>
     <hr/>

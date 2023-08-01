@@ -1,8 +1,12 @@
 from django.http import JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import render
 from projects.models import Project, MiscStats, VaultDataset, ResearchFolder, Department
 from datetime import datetime
 from django.db.models import Sum
+from django.contrib.auth.decorators import login_required
+from projects.reports import yearly_billing_report
+import mimetypes
 
 start_year = 2022
 today = datetime.now()
@@ -29,6 +33,8 @@ def index(request):
     requested_size = Project.objects.aggregate(total=Sum('requested_size'))['total'] / 1024  # TB
     miscstats = MiscStats.objects.latest('collected')
     context = {
+        'current_year': end_year,
+        'previous_year': end_year-1,
         'num_projects': num_projects,
         'unregistered_groups': ResearchFolder.objects.filter(project__isnull=True, deleted__isnull=True).all().count,
         'total_size': _convert_bytes(miscstats.size_total + miscstats.revision_size),
@@ -42,6 +48,23 @@ def index(request):
     }
     return render(request, 'index.html', context=context)
 
+
+@login_required(login_url='/admin/login/')
+def download_billing_report(request, year: int):
+    # fill these variables with real values
+    fl_path = yearly_billing_report(int(year))
+    if int(year) == today.year:
+        month = today.month
+    else:
+        month = 12
+    filename = f'cost_{year}-{month}.xlsx'
+
+    fl = open(fl_path, 'rb')
+    mime_type, _ = mimetypes.guess_type(fl_path)
+    response = HttpResponse(fl, content_type=mime_type)
+    response['Content-Disposition'] = "attachment; filename=%s" % filename
+    return response
+        
 
 def _quarterly_miscstats():
     quarters = [3, 6, 9, 12]

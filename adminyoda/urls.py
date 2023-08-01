@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('projects/', include('projects.urls')),
     path('', views.index, name='index'),
+    path('download_billing_report/<slug:year>', views.download_billing_report, name='download_billing_report'),
     path('size_chart_json', views.size_chart_json, name='size_chart_json'),
     path('research_size_chart_json', views.research_size_chart_json, name='research_size_chart_json'),
     path('vault_size_chart_json', views.vault_size_chart_json, name='vault_size_chart_json'),

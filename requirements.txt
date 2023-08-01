@@ -5,3 +5,5 @@ django-tables2>=2.4.0,<3.0
 django-view-breadcrumbs>=2.1.0,<3.0
 psycopg2>=2.8.0,<3.0
 gunicorn>20.0.0
+pandas>=1.2.0,<2.0
+openpyxl>=3.0.0,<4.0
