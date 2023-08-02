@@ -109,7 +109,7 @@ def get_usage_data(start_year, end_year, end_month):
             datasets = _vault_datasets_by_month(VaultFolder.objects.get(research_folder=f), datasets, start_year, end_year, end_month)
             research_yearly = _yearly_research_stats(f, research_yearly, start_year, end_year)
         usage_data[project.id] = {
-            'project': f'{project.department.faculty}-{project.department.abbreviation}-{project.title}',
+            'project': f'{project.department.faculty} {project.department.abbreviation} {project.title}',
             'usage_details': f'https://adminyoda.labs.vu.nl/projects/{project.id}',
             'created': project.created.strftime("%Y-%m-%d"),
             'deleted': project.delete_date.strftime("%Y-%m-%d") if project.delete_date else '',
@@ -246,31 +246,31 @@ def generate_yearly_report(year):
         filename = f'output/yearly_cost_report_{year}{today.strftime("%U")}.xlsx'
     else:
         filename = f'output/yearly_cost_report_{year}.xlsx'
-    if not os.path.isfile(filename):
-        usage_data = get_usage_data(start_year=year, end_year=year, end_month=12)
-        
-        billing = get_billable_data(year, usage_data)
-        usage = yearly_usage_formatted(year, billing)
-        
-        with open(f'{filename[:-5]}.json', 'w') as fp:
-            json.dump(billing, fp)
-        
-        columns = ['project', 'created', 'deleted', 'owner_name', 'owner_vunetid', 'budget_code', 'budget_type', 'budget_holder', 'active_cost', 'archive_cost', 'total_cost', 'calculated_by_last']
-        dfb = pd.DataFrame.from_dict(data=billing, orient='index', columns=columns)
-        
-        dfu = pd.DataFrame.from_dict(data=usage, orient='index')
-        
-        writer = pd.ExcelWriter(filename, engine='xlsxwriter')
-        dfb.to_excel(writer, sheet_name='billing', index=False)
-        for column in dfb:
-            column_length = max(dfb[column].astype(str).map(len).max(), len(str(column)))
-            col_idx = dfb.columns.get_loc(column)
-            writer.sheets['billing'].set_column(col_idx, col_idx, column_length)
-        dfu.to_excel(writer, sheet_name='usage', index=False)
-        for column in dfu:
-            column_length = max(dfu[column].astype(str).map(len).max(), len(str(column)))
-            col_idx = dfu.columns.get_loc(column)
-            writer.sheets['usage'].set_column(col_idx, col_idx, column_length)
-        writer.close()
+
+    usage_data = get_usage_data(start_year=year, end_year=year, end_month=12)
+    
+    billing = get_billable_data(year, usage_data)
+    usage = yearly_usage_formatted(year, billing)
+    
+    with open(f'{filename[:-5]}.json', 'w') as fp:
+        json.dump(billing, fp)
+    
+    columns = ['project', 'created', 'deleted', 'owner_name', 'owner_vunetid', 'budget_code', 'budget_type', 'budget_holder', 'active_cost', 'archive_cost', 'total_cost', 'calculated_by_last']
+    dfb = pd.DataFrame.from_dict(data=billing, orient='index', columns=columns)
+    
+    dfu = pd.DataFrame.from_dict(data=usage, orient='index')
+    
+    writer = pd.ExcelWriter(filename, engine='xlsxwriter')
+    dfb.to_excel(writer, sheet_name='billing', index=False)
+    for column in dfb:
+        column_length = max(dfb[column].astype(str).map(len).max(), len(str(column)))
+        col_idx = dfb.columns.get_loc(column)
+        writer.sheets['billing'].set_column(col_idx, col_idx, column_length)
+    dfu.to_excel(writer, sheet_name='usage', index=False)
+    for column in dfu:
+        column_length = max(dfu[column].astype(str).map(len).max(), len(str(column)))
+        col_idx = dfu.columns.get_loc(column)
+        writer.sheets['usage'].set_column(col_idx, col_idx, column_length)
+    writer.close()
     return filename
 
