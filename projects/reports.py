@@ -274,4 +274,3 @@ def generate_yearly_report(year):
     writer.close()
     return filename
 
-generate_yearly_report(2023)
