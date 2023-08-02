@@ -5,7 +5,7 @@ from projects.models import Project, MiscStats, VaultDataset, ResearchFolder, De
 from datetime import datetime
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
-from projects.reports import yearly_billing_report
+from projects.reports import generate_yearly_report
 import mimetypes
 
 start_year = 2022
@@ -52,7 +52,7 @@ def index(request):
 @login_required(login_url='/admin/login/')
 def download_billing_report(request, year: int):
     # fill these variables with real values
-    fl_path = yearly_billing_report(int(year))
+    fl_path = generate_yearly_report(int(year))
     if int(year) == today.year:
         month = today.month
     else:

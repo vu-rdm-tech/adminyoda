@@ -1,4 +1,4 @@
-from projects.views import project_detail_data, project_research_stats, friendly_size
+#from projects.views import project_detail_data, project_research_stats, friendly_size
 from projects.models import Project, ResearchStats, ResearchFolder, VaultFolder, VaultDataset
 import logging
 import os
@@ -16,11 +16,6 @@ logger = logging.getLogger(__name__)
 GB = 1024 * 1024 * 1024
 today = datetime.now()
 
-
-def _researchstats_month(research_folder, year, month):
-    return ResearchStats.objects.filter(research_folder=research_folder, collected__year=year,
-                                        collected__month=month).order_by('collected').last()
-
 def _monthly_research_stats(folder, stats, start_year, end_year, end_month):
     for year in range(start_year, end_year + 1):
         if year not in stats:
@@ -28,7 +23,8 @@ def _monthly_research_stats(folder, stats, start_year, end_year, end_month):
         for month in range(1, 13):
             if month not in stats[year]:
                 stats[year][month] = {}
-            s = _researchstats_month(folder, year, month)
+            s = ResearchStats.objects.filter(research_folder=folder, collected__year=year,
+                                        collected__month=month).order_by('collected').last()
             if s is not None:
                 if 'size' not in stats[year][month]:
                     stats[year][month]['size'] = s.size + s.revision_size
@@ -64,60 +60,43 @@ def _vault_datasets_by_month(vault_folder, data, start_year, end_year, end_month
                 })
     return data
         
+def calculate_yearly_cost(size, free_block = 500, first_block = 2048, first_block_cost = 200, block_size = 1024, block_cost = 250):
+    '''calculate yearly storage cost according to the VU pricing model.
+    The default values are based on the costs for active storage. https://vu.nl/en/employee/research-data-support/costs-research-en-archiving-storage
 
-def research_cost_table(project_id):
-    labels, research_stats, vault_stats = project_research_stats(project_id)
-    research_stats_table = [[''], ['Size'], ['Cost']]
-    cumulative_cost = 0
-    for label in labels:
-        if label.startswith(str(datetime.datetime.now().year)):
-            research_stats_table[0].append(label)
-            research_stats_table[1].append(friendly_size(research_stats[label]['total_size']))
-            cost = calculate_cost(research_stats[label]['total_size']) / 12
-            research_stats_table[2].append(round(cost, 2))
-            cumulative_cost += cost
-    return research_stats_table, cumulative_cost
+    Arguments:
+        size -- data size in bytes
 
-def calculate_blocks(bytes, block_size_GB=2048):
-    bytes = bytes + 1 # avoid 0
-    gigabytes = bytes/(1024*1024*1024)
-    return int(math.ceil(gigabytes/block_size_GB))
+    Keyword Arguments:
+        free_block -- storage up to this size in GB is free (default: {500})
+        first_block -- the first block over the free block has a specific price (default: {2048})
+        first_block_cost -- cost of the first blok (default: {200})
+        block_size -- size of blocks for all storage over the first block (default: {1024})
+        block_cost -- cost per block over first block (default: {250})
 
-def calculate_cost(size, free_block = 500, first_block = 2048, first_block_cost = 200, block_size = 1024, block_cost = 250):
+    Returns:
+        calcluated cost per year in euros
+    '''    
     total_cost = 0
-    GBytes = 1024 * 1024 * 1024
-    if size > free_block * GBytes:
+    if size > free_block * GB:
         total_cost = first_block_cost
-    if size > first_block * GBytes:
-        total_cost = total_cost + (calculate_blocks(size, block_size) - 1) * block_cost
+    if size > first_block * GB:
+        total_cost = total_cost + (calculate_blocks(size - (first_block * GB), block_size)) * block_cost
     return total_cost
 
-def send_monthly_owner_reports():
-    projects = Project.objects.filter(delete_date__isnull=True).all()
-    for project in projects:
-        details = project_detail_data(project.id)
-        project = Project.objects.get(pk=project.id)
-        cost_table, cumulative_cost = research_cost_table(project.id)
-        params = {'project': project, 'details': details, 'research_stats': cost_table, 'total_cost': round(cumulative_cost, 2), 'sitename': os.environ.get("SITE_NAME")}
-        msg_plain = render_to_string('projects/owner_report.txt', params)
-        msg_html = render_to_string('projects/owner_report.html', params)
-        with open(f'email_{project.title}.html', 'w') as fp:
-            fp.write(msg_html)
-        try:
-            send_mail(
-                f'{datetime.datetime.now()} Yoda usage report for "{project.title}"',
-                msg_plain,
-                settings.REPORTS_MAIL_FROM,
-                [settings.REPORTS_MAIL_TEST_TO],
-                html_message=msg_html,
-            )
-            logger.info(f'successfully sent monthly report email to {settings.REPORTS_MAIL_TEST_TO}')
-        except Exception as e:
-            logger.error(f'unable to send monthly report email to {settings.REPORTS_MAIL_TEST_TO}, error: {e}')
+def get_usage_data(start_year, end_year, end_month):
+    '''get monthly usage data for all projects from the databse
 
-def get_billing_data(start_year, end_year, end_month):
+    Arguments:
+        start_year {int} -- _description_
+        end_year {int} -- _description_
+        end_month {int} -- _description_
+
+    Returns:
+        usage_data {dict} -- dict with project id as key and a dict with the project details and usage data as value
+    '''    
     projects = Project.objects.filter(delete_date__isnull=True).all()
-    billing_data = {}
+    usage_data = {}
     for project in projects:
 
         rf = ResearchFolder.objects.filter(project=project)  # deleted folders should automatically disappear from the stats
@@ -129,7 +108,7 @@ def get_billing_data(start_year, end_year, end_month):
             research = _monthly_research_stats(f, research, start_year, end_year, end_month)
             datasets = _vault_datasets_by_month(VaultFolder.objects.get(research_folder=f), datasets, start_year, end_year, end_month)
             research_yearly = _yearly_research_stats(f, research_yearly, start_year, end_year)
-        billing_data[project.id] = {
+        usage_data[project.id] = {
             'project': f'{project.department.faculty}-{project.department.abbreviation}-{project.title}',
             'usage_details': f'https://adminyoda.labs.vu.nl/projects/{project.id}',
             'created': project.created.strftime("%Y-%m-%d"),
@@ -143,86 +122,156 @@ def get_billing_data(start_year, end_year, end_month):
             'research_yearly': research_yearly,
             'datasets': datasets
         }
-    return billing_data
+    return usage_data
 
-def calculate_research_cost(size, free_block = 500, first_block = 2048, first_block_cost = 200, block_size = 2048, block_cost = 250):
-    total_cost = 0
-    GBytes = 1024 * 1024 * 1024
-    if size > free_block * GBytes:
-        total_cost = first_block_cost
-    if size > first_block * GBytes:
-        total_cost = total_cost + (calculate_blocks(size, block_size) - 1) * block_cost
-    return total_cost
-    
+def calculate_blocks(bytes, block_size_GB=1024):
+    '''given a size in bytes, calculate the number of blocks of a given size in GB
 
-def calculate_monthly_costs_per_project(year):
-    billing_data = get_billing_data(start_year=year, end_year=year, end_month=12)
-    for project in billing_data:
+    Arguments:
+        bytes -- storage size in bytes
+
+    Keyword Arguments:
+        block_size_GB -- size of a block in GB (default: {1024})
+
+    Returns:
+        number of blocks {int} -- number of blocks of size block_size_GB
+    '''    
+    bytes = bytes + 1 # avoid 0
+    gigabytes = bytes/GB
+    return int(math.ceil(gigabytes/block_size_GB))
+
+def add_monthly_costs_to_projectdata(year, data):
+    '''Loop through the data dict and use the monthly size to calculate the monthly costs
+
+    Arguments:
+        year {int} -- _description_
+        data {dict} -- dict created by get_usage_data
+
+    Returns:
+        the data dict with the monthly costs added
+    '''    
+    for project in data:
         total_research_cost = 0
         total_dataset_cost = 0
-        if year in billing_data[project]['research']:
-            for month in billing_data[project]['research'][year]:
+        if year in data[project]['research']:
+            for month in data[project]['research'][year]:
                 cost = 0
-                if 'size' in billing_data[project]['research'][year][month]:
-                    cost = calculate_cost(billing_data[project]['research'][year][month]['size']) / 12    
-                    billing_data[project]['research'][year][month]['cost'] = cost
+                if 'size' in data[project]['research'][year][month]:
+                    cost = calculate_yearly_cost(data[project]['research'][year][month]['size']) / 12    
+                    data[project]['research'][year][month]['cost'] = cost
                     total_research_cost += cost
-            for month in billing_data[project]['datasets'][year]:
+            for month in data[project]['datasets'][year]:
                 cost = 0
                 i = 0
-                for dataset in billing_data[project]['datasets'][year][month]:
+                for dataset in data[project]['datasets'][year][month]:
                     if 'size' in dataset:
-                        cost += calculate_cost(dataset['size'], first_block_cost=25, block_cost=25) * dataset['retention']
+                        cost += calculate_yearly_cost(dataset['size'], first_block_cost=25, block_cost=25) * dataset['retention']
                         total_dataset_cost += cost
-                    billing_data[project]['datasets'][year][month][i]['cost'] = cost
+                    data[project]['datasets'][year][month][i]['cost'] = cost
                     i += 1
-            if 'size' in billing_data[project]['research_yearly'][year]:
-                billing_data[project]['yearly_research_cost'] = calculate_cost(billing_data[project]['research_yearly'][year]['size'])
-        billing_data[project]['total_dataset_cost'] = total_dataset_cost
-        billing_data[project]['total_research_cost'] = total_research_cost
-        billing_data[project]['total_cost'] = round(total_research_cost + total_dataset_cost)
-    return billing_data
+            if 'size' in data[project]['research_yearly'][year]:
+                data[project]['calculated_by_last'] = calculate_yearly_cost(data[project]['research_yearly'][year]['size'])
+        data[project]['total_dataset_cost'] = total_dataset_cost
+        data[project]['total_research_cost'] = total_research_cost
+        data[project]['total_cost'] = round(total_research_cost + total_dataset_cost)
+    return data
 
-def yearly_billing_report(year):
+def yearly_usage_formatted(year, data):
+    '''usage data per month for each project in the billing data in useful format for pandas excel writer
+
+    Arguments:
+        year {integer} -- year to report
+        data {dict} -- usage data created by get_usage_data
+
+    Returns:
+        report_usage_data {dict} -- usage data per month for each project in the billing data in useful format for pandas excel writer
+    '''
+    
+    report_usage_data = {}
+    row = 0
+    for project in data:
+        report_usage_data[row] = {}
+        report_usage_data[row + 1] = {}
+        report_usage_data[row + 2] = {}
+        report_usage_data[row + 3] = {}
+        report_usage_data[row]['project']=f'{data[project]["project"]}: size'
+        report_usage_data[row + 1]['project']=f'{data[project]["project"]}: active_cost'
+        report_usage_data[row + 2]['project']=f'{data[project]["project"]}: datasets'
+        report_usage_data[row + 3]['project']=f'{data[project]["project"]}: archive_cost'
+        for month in data[project]['research'][year]:
+            if 'size' in data[project]['research'][year][month]:
+                report_usage_data[row][month] = round(data[project]['research'][year][month]['size'] / GB)
+                report_usage_data[row + 1][month] = round(data[project]['research'][year][month]['cost'], 2)
+                report_usage_data[row + 2][month] = ''
+                report_usage_data[row + 3][month] = 0
+                for dataset in data[project]['datasets'][year][month]:
+                    report_usage_data[row + 2][month] += f"{round(dataset['size'] / GB)} (retention: {dataset['retention']}), "
+                    report_usage_data[row + 3][month] += round(dataset['cost'], 2)
+                if report_usage_data[row + 2][month] == '':
+                    report_usage_data[row + 2][month] = '-'
+                else:
+                    report_usage_data[row + 2][month] = report_usage_data[row + 2][month][:-2]
+        row += 4
+    return report_usage_data
+    
+    
+def get_billable_data(year, usage):
+    '''add costs to the usage data, drop all free projects 
+
+    Arguments:
+        year {int} -- year to report
+        usage {dict} -- usage data returned by get_usage_data
+
+    Returns:
+        bill_data {dict} -- usage data with added cost data, only projects with total cost>0
+    '''    
+    data=add_monthly_costs_to_projectdata(year, usage)
+    bill_data = {}
+    for project in data:
+        if data[project]['total_cost'] > 0:
+            bill_data[project] = data[project]
+    return bill_data
+
+
+def generate_yearly_report(year):
+    '''If not already present, generate a yearly report for the given year in xlsx and json format
+
+    Arguments:
+        year -- _description_
+
+    Returns:
+        filename {string} -- filename of the report in xlsx format
+    '''    
     if year == today.year:
         filename = f'output/yearly_cost_report_{year}{today.strftime("%U")}.xlsx'
     else:
         filename = f'output/yearly_cost_report_{year}.xlsx'
     #if not os.path.isfile(filename):
-    data=calculate_monthly_costs_per_project(year)
-    bill_data = {}
-    usage_data = {}
-    columns = ['project', 'usage_details', 'created', 'deleted', 'owner_name', 'owner_vunetid', 'budget_code', 'budget_type', 'budget_holder', 'total_research_cost', 'total_dataset_cost', 'total_cost', 'yearly_research_cost']
-    for project in data:
-        if data[project]['total_cost'] > 0:
-            bill_data[project] = data[project]
-            print(data[project]['project'])
-            usage_data[f'{data[project]["project"]}: size']={}
-            usage_data[f'{data[project]["project"]}: active_cost']={}
-            usage_data[f'{data[project]["project"]}: datasets']={}
-            usage_data[f'{data[project]["project"]}: archive_cost']={}
-            for month in data[project]['research'][year]:
-                
-                if 'size' in data[project]['research'][year][month]:
-                    usage_data[f'{data[project]["project"]}: size'][month] = data[project]['research'][year][month]['size'] / GB
-                    usage_data[f'{data[project]["project"]}: active_cost'][month] = data[project]['research'][year][month]['cost']
-                usage_data[f'{data[project]["project"]}: datasets'][month] = ''
-                usage_data[f'{data[project]["project"]}: archive_cost'][month] = 0
-                for dataset in data[project]['datasets'][year][month]:
-                    usage_data[f'{data[project]["project"]}: datasets'][month] += f"{dataset['size'] / GB} ({dataset['retention']})\n"
-                    usage_data[f'{data[project]["project"]}: archive_cost'][month] += dataset['cost']
-                
-            
+    usage_data = get_usage_data(start_year=year, end_year=year, end_month=12)
+    
+    billing = get_billable_data(year, usage_data)
+    usage = yearly_usage_formatted(year, billing)
+    
     with open(f'{filename[:-5]}.json', 'w') as fp:
-        json.dump(bill_data, fp)
-    df = pd.DataFrame.from_dict(data=bill_data, orient='index', columns=columns)
-    dfu = pd.DataFrame.from_dict(data=usage_data, orient='index')
-    writer = pd.ExcelWriter(filename)
-    df.to_excel(writer, sheet_name='billing')
-    dfu.to_excel(writer, sheet_name='usage')
+        json.dump(billing, fp)
+    
+    columns = ['project', 'created', 'deleted', 'owner_name', 'owner_vunetid', 'budget_code', 'budget_type', 'budget_holder', 'total_research_cost', 'total_dataset_cost', 'total_cost', 'calculated_by_last']
+    dfb = pd.DataFrame.from_dict(data=billing, orient='index', columns=columns)
+    
+    dfu = pd.DataFrame.from_dict(data=usage, orient='index')
+    
+    writer = pd.ExcelWriter(filename, engine='xlsxwriter')
+    dfb.to_excel(writer, sheet_name='billing', index=False)
+    for column in dfb:
+        column_length = max(dfb[column].astype(str).map(len).max(), len(str(column)))
+        col_idx = dfb.columns.get_loc(column)
+        writer.sheets['billing'].set_column(col_idx, col_idx, column_length)
+    dfu.to_excel(writer, sheet_name='usage', index=False)
+    for column in dfu:
+        column_length = max(dfu[column].astype(str).map(len).max(), len(str(column)))
+        col_idx = dfu.columns.get_loc(column)
+        writer.sheets['usage'].set_column(col_idx, col_idx, column_length)
     writer.close()
     return filename
 
-# TO DO: add worksheet with monthly usage per project
-yearly_billing_report(2023)
-
+generate_yearly_report(2023)
