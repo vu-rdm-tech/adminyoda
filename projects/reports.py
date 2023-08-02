@@ -151,29 +151,29 @@ def add_monthly_costs_to_projectdata(year, data):
         the data dict with the monthly costs added
     '''    
     for project in data:
-        total_research_cost = 0
-        total_dataset_cost = 0
+        active_cost = 0
+        archive_cost = 0
         if year in data[project]['research']:
             for month in data[project]['research'][year]:
                 cost = 0
                 if 'size' in data[project]['research'][year][month]:
                     cost = calculate_yearly_cost(data[project]['research'][year][month]['size']) / 12    
                     data[project]['research'][year][month]['cost'] = cost
-                    total_research_cost += cost
+                    active_cost += cost
             for month in data[project]['datasets'][year]:
                 cost = 0
                 i = 0
                 for dataset in data[project]['datasets'][year][month]:
                     if 'size' in dataset:
                         cost += calculate_yearly_cost(dataset['size'], first_block_cost=25, block_cost=25) * dataset['retention']
-                        total_dataset_cost += cost
+                        archive_cost += cost
                     data[project]['datasets'][year][month][i]['cost'] = cost
                     i += 1
             if 'size' in data[project]['research_yearly'][year]:
                 data[project]['calculated_by_last'] = calculate_yearly_cost(data[project]['research_yearly'][year]['size'])
-        data[project]['total_dataset_cost'] = total_dataset_cost
-        data[project]['total_research_cost'] = total_research_cost
-        data[project]['total_cost'] = round(total_research_cost + total_dataset_cost)
+        data[project]['archive_cost'] = archive_cost
+        data[project]['active_cost'] = active_cost
+        data[project]['total_cost'] = round(active_cost + archive_cost)
     return data
 
 def yearly_usage_formatted(year, data):
@@ -255,7 +255,7 @@ def generate_yearly_report(year):
         with open(f'{filename[:-5]}.json', 'w') as fp:
             json.dump(billing, fp)
         
-        columns = ['project', 'created', 'deleted', 'owner_name', 'owner_vunetid', 'budget_code', 'budget_type', 'budget_holder', 'total_research_cost', 'total_dataset_cost', 'total_cost', 'calculated_by_last']
+        columns = ['project', 'created', 'deleted', 'owner_name', 'owner_vunetid', 'budget_code', 'budget_type', 'budget_holder', 'active_cost', 'archive_cost', 'total_cost', 'calculated_by_last']
         dfb = pd.DataFrame.from_dict(data=billing, orient='index', columns=columns)
         
         dfu = pd.DataFrame.from_dict(data=usage, orient='index')
