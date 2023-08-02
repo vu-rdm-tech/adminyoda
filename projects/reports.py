@@ -115,6 +115,7 @@ def get_usage_data(start_year, end_year, end_month):
             'deleted': project.delete_date.strftime("%Y-%m-%d") if project.delete_date else '',
             'owner_name': project.owner.firstname + ' ' + project.owner.lastname,
             'owner_vunetid': project.owner.vunetid,
+            'owner_email': project.owner.email,
             'budget_code': project.budget.code,
             'budget_type': project.budget.type,
             'budget_holder': project.budget.vunetid,
@@ -255,7 +256,7 @@ def generate_yearly_report(year):
     with open(f'{filename[:-5]}.json', 'w') as fp:
         json.dump(billing, fp)
     
-    columns = ['project', 'created', 'deleted', 'owner_name', 'owner_vunetid', 'budget_code', 'budget_type', 'budget_holder', 'active_cost', 'archive_cost', 'total_cost', 'calculated_by_last']
+    columns = ['project', 'created', 'deleted', 'owner_name', 'owner_vunetid', 'owner_email', 'budget_code', 'budget_type', 'budget_holder', 'active_cost', 'archive_cost', 'total_cost', 'calculated_by_last']
     dfb = pd.DataFrame.from_dict(data=billing, orient='index', columns=columns)
     
     dfu = pd.DataFrame.from_dict(data=usage, orient='index')
