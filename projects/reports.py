@@ -70,7 +70,7 @@ def calculate_yearly_cost(size, free_block = 500, first_block = 2048, first_bloc
     Keyword Arguments:
         free_block -- storage up to this size in GB is free (default: {500})
         first_block -- the first block over the free block has a specific price (default: {2048})
-        first_block_cost -- cost of the first blok (default: {200})
+        first_block_cost -- cost of the first block (default: {200})
         block_size -- size of blocks for all storage over the first block (default: {1024})
         block_cost -- cost per block over first block (default: {250})
 
