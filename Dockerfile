@@ -10,12 +10,10 @@ RUN apt-get update && \
     pip install --upgrade pip && \
     pip install -r requirements.txt
 
-COPY entrypoint.sh ./
-RUN chmod +x entrypoint.sh
-
 COPY . .
 
 RUN chown -R 1001:1001 /usr/src/app/output
+RUN chmod +x entrypoint.sh
 
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
 
