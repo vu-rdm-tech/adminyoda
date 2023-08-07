@@ -13,7 +13,6 @@ RUN apt-get update && \
 
 COPY . .
 
-RUN chown -R 1001:1001 /usr/src/app/output
 RUN chmod +x entrypoint.sh
 
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

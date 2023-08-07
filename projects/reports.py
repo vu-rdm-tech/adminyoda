@@ -244,9 +244,9 @@ def generate_yearly_report(year):
         filename {string} -- filename of the report in xlsx format
     '''    
     if year == today.year:
-        filename = f'output/yearly_cost_report_{year}{today.strftime("%U")}.xlsx'
+        filename = f'/tmp/yearly_cost_report_{year}{today.strftime("%U")}.xlsx'
     else:
-        filename = f'output/yearly_cost_report_{year}.xlsx'
+        filename = f'/tmp/yearly_cost_report_{year}.xlsx'
 
     usage_data = get_usage_data(start_year=year, end_year=year, end_month=12)
     
