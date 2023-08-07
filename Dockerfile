@@ -11,7 +11,7 @@ RUN apt-get update && \
     pip install -r requirements.txt
 
 COPY entrypoint.sh ./
-RUN chmod +x /usr/src/app/entrypoint.sh
+RUN chmod +x entrypoint.sh
 
 COPY . .
 
