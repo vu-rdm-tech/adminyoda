@@ -4,7 +4,6 @@ import datetime
 
 
 class ProjectTable(tables.Table):
-    id = tables.Column()
     title = tables.Column()
     department = tables.Column()
     faculty = tables.Column()
@@ -16,9 +15,10 @@ class ProjectTable(tables.Table):
     # size_warning = tables.Column()
     size = tables.Column()
     request_date = tables.Column()
+    id = tables.Column(orderable=False, verbose_name='')
 
     def render_id(self, value):
-        return format_html(f'<a href="{value}">{value}</>')
+        return format_html(f'<a href="{value}">details</>')
 
     def render_request_date(self, value):
         return value.strftime("%Y-%m-%d")
