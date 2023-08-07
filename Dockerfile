@@ -10,7 +10,7 @@ RUN apt-get update && \
     pip install --upgrade pip && \
     pip install -r requirements.txt
 
-COPY ./entrypoint.sh .
+COPY entrypoint.sh .
 RUN chmod +x /usr/src/app/entrypoint.sh
 
 COPY . .
