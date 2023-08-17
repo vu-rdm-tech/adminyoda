@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 GB = 1024 * 1024 * 1024
 today = datetime.now()
 
-def _monthly_research_stats(folder, stats, start_year, end_year, end_month):
+def _monthly_research_stats(folder, stats, start_year, end_year, include_revisions=True):
     for year in range(start_year, end_year + 1):
         if year not in stats:
             stats[year] = {}
@@ -27,24 +27,28 @@ def _monthly_research_stats(folder, stats, start_year, end_year, end_month):
                                         collected__month=month).order_by('collected').last()
             if s is not None:
                 if 'size' not in stats[year][month]:
-                    stats[year][month]['size'] = s.size + s.revision_size
+                    stats[year][month]['size'] = s.size
                 else:
-                    stats[year][month]['size'] += s.size + s.revision_size
+                    stats[year][month]['size'] += s.size
+                if include_revisions:
+                    stats[year][month]['size'] += s.revision_size
     return stats
 
-def _yearly_research_stats(folder, stats, start_year, end_year):
+def _yearly_research_stats(folder, stats, start_year, end_year, include_revisions=True):
     for year in range(start_year, end_year + 1):
         if year not in stats:
             stats[year] = {}
         s = ResearchStats.objects.filter(research_folder=folder, collected__year=year).order_by('collected').last()
         if s is not None:
             if 'size' not in stats[year]:
-                stats[year]['size'] = s.size + s.revision_size
+                stats[year]['size'] = s.size
             else:
-                stats[year]['size'] += s.size + s.revision_size
+                stats[year]['size'] += s.size
+            if include_revisions:
+                stats[year]['size'] += s.size
     return stats
 
-def _vault_datasets_by_month(vault_folder, data, start_year, end_year, end_month):
+def _vault_datasets_by_month(vault_folder, data, start_year, end_year):
     for year in range(start_year, end_year + 1):
         if year not in data:
             data[year] = {}
@@ -84,13 +88,12 @@ def calculate_yearly_cost(size, free_block = 500, first_block = 2048, first_bloc
         total_cost = total_cost + (calculate_blocks(size - (first_block * GB), block_size)) * block_cost
     return total_cost
 
-def get_usage_data(start_year, end_year, end_month):
+def get_usage_data(start_year, end_year, include_revisions=True):
     '''get monthly usage data for all projects from the databse
 
     Arguments:
         start_year {int} -- _description_
         end_year {int} -- _description_
-        end_month {int} -- _description_
 
     Returns:
         usage_data {dict} -- dict with project id as key and a dict with the project details and usage data as value
@@ -105,9 +108,9 @@ def get_usage_data(start_year, end_year, end_month):
         research_yearly = {}
         for f in rf:
             print(f'{project.title} - {f.yoda_name}')
-            research = _monthly_research_stats(f, research, start_year, end_year, end_month)
-            datasets = _vault_datasets_by_month(VaultFolder.objects.get(research_folder=f), datasets, start_year, end_year, end_month)
-            research_yearly = _yearly_research_stats(f, research_yearly, start_year, end_year)
+            research = _monthly_research_stats(f, research, start_year, end_year, include_revisions=include_revisions)
+            datasets = _vault_datasets_by_month(VaultFolder.objects.get(research_folder=f), datasets, start_year, end_year)
+            research_yearly = _yearly_research_stats(f, research_yearly, start_year, end_year, include_revisions=include_revisions)
         usage_data[project.id] = {
             'project': f'{project.department.faculty} {project.department.abbreviation} {project.title}',
             'usage_details': f'https://adminyoda.labs.vu.nl/projects/{project.id}',
@@ -234,7 +237,7 @@ def get_billable_data(year, usage):
     return bill_data
 
 
-def generate_yearly_report(year):
+def generate_yearly_report(year, include_revisions=True):
     '''If not already present, generate a yearly report for the given year in xlsx and json format
 
     Arguments:
@@ -248,7 +251,7 @@ def generate_yearly_report(year):
     else:
         filename = f'/tmp/yearly_cost_report_{year}.xlsx'
 
-    usage_data = get_usage_data(start_year=year, end_year=year, end_month=12)
+    usage_data = get_usage_data(start_year=year, end_year=year, include_revisions=include_revisions)
     
     billing = get_billable_data(year, usage_data)
     usage = yearly_usage_formatted(year, billing)
