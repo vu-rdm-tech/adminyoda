@@ -10,11 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='vaultdataset',
-            name='retention',
-            field=models.IntegerField(default=10),
-        ),
         migrations.AddConstraint(
             model_name='budget',
             constraint=models.UniqueConstraint(fields=('code',), name='unique_code'),
@@ -22,9 +17,5 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name='department',
             constraint=models.UniqueConstraint(fields=('abbreviation', 'faculty'), name='unique_abbreviation_faculty'),
-        ),
-        migrations.AddConstraint(
-            model_name='person',
-            constraint=models.UniqueConstraint(fields=('vunetid',), name='unique_vunetid'),
         ),
     ]
