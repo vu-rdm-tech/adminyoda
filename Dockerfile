@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.11
 
 WORKDIR /usr/src/app
 
@@ -6,7 +6,7 @@ COPY requirements.txt ./
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends postgresql-client && \
-    apt-get install -y netcat && \
+    apt-get install -y netcat-traditional && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --upgrade pip && \
     pip install -r requirements.txt
