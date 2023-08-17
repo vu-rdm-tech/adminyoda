@@ -22,6 +22,7 @@ services:
     command: gunicorn adminyoda.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ${DOCKER_DATA}/adminyoda/log:/usr/app/log
+      - static:/usr/app/static
 
   adminyoda-task:
     container_name: adminyoda-task
@@ -69,6 +70,9 @@ services:
       - "443:443"
       - "80:80"
     volumes:
-      - ./static:/static:ro  # for syncing with django source code
+      - static:/static:ro  # for syncing with django source code
       - ${DOCKER_DATA}/adminyoda/nginx_conf:/etc/nginx/conf.d:ro
       - /home/acme:/acme:ro
+
+volumes:
+  static:
