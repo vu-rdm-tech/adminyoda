@@ -52,7 +52,7 @@ def index(request):
 @login_required(login_url='/admin/login/')
 def download_billing_report(request, year: int):
     # fill these variables with real values
-    fl_path = generate_yearly_report(int(year))
+    fl_path = generate_yearly_report(int(year), include_revisions=True)
     if int(year) == today.year:
         month = today.month
     else:
