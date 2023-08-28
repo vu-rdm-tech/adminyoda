@@ -81,8 +81,8 @@ def _get_rf_table(p, d):
         vf = VaultFolder.objects.get(research_folder=f)
         if vf.deleted is None:
             size = size + VaultStats.objects.filter(vault_folder=vf).latest('collected').size
-            cnt = VaultDataset.objects.filter(vault_folder=vf).count()
-            pubcnt = VaultDataset.objects.filter(status='PUBLISHED', vault_folder=vf).count()
+            cnt = VaultDataset.objects.filter(vault_folder=vf, deleted__isnull=True).count()
+            pubcnt = VaultDataset.objects.filter(status='PUBLISHED', vault_folder=vf, deleted__isnull=True).count()
             d['num_dataset'] = d['num_dataset'] + cnt
             d['num_published'] = d['num_published'] + pubcnt
     d['size_warning'] = False
