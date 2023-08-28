@@ -167,6 +167,7 @@ def get_usage_data(start_year, end_year, include_revisions=True):
         research = {}
         datasets = {}
         research_yearly = {}
+        datasets_yearly = {}
         for f in rf:
             print(f"{project.title} - {f.yoda_name}")
             research = _monthly_research_stats(
@@ -179,7 +180,10 @@ def get_usage_data(start_year, end_year, include_revisions=True):
                 end_year,
             )
             datasets_yearly = _yearly_vault_stats(
-                VaultFolder.objects.get(research_folder=f), {}, start_year, end_year
+                VaultFolder.objects.get(research_folder=f),
+                datasets_yearly,
+                start_year,
+                end_year,
             )
             research_yearly = _yearly_research_stats(
                 f,
@@ -451,19 +455,28 @@ def general_stats(start_year, end_year, include_revisions=True):
             MiscStats.objects.filter(collected__year=year).order_by("collected").last()
         )
         stats[year] = [
-            Project.objects.filter(Q(delete_date__isnull=True) | Q(delete_date__year__gt=year), created__year__lte=year)
+            Project.objects.filter(
+                Q(delete_date__isnull=True) | Q(delete_date__year__gt=year),
+                created__year__lte=year,
+            )
             .all()
             .count(),
             round((miscstats.size_research + miscstats.revision_size) / GB),
             round(miscstats.size_vault / GB),
-            VaultDataset.objects.filter(Q(deleted__isnull=True) | Q(deleted__year__gt=year), created__year__lte=year)
+            VaultDataset.objects.filter(
+                Q(deleted__isnull=True) | Q(deleted__year__gt=year),
+                created__year__lte=year,
+            )
             .all()
             .count(),
             VaultDataset.objects.filter(status="PUBLISHED", created__year__lte=year)
             .all()
             .count(),
             miscstats.users_total,
-            ResearchFolder.objects.filter(Q(deleted__isnull=True) | Q(deleted__year__gt=year), created__year__lte=year)
+            ResearchFolder.objects.filter(
+                Q(deleted__isnull=True) | Q(deleted__year__gt=year),
+                created__year__lte=year,
+            )
             .all()
             .count(),
         ]
@@ -474,10 +487,10 @@ def general_stats(start_year, end_year, include_revisions=True):
 def generate_statistics_report(include_revisions=True):
     filename = f'/tmp/yearly_statistics_report_{today.strftime("%U")}.xlsx'
     writer = pd.ExcelWriter(filename, engine="xlsxwriter")
-    
+
     dfg = pd.DataFrame.from_dict(data=general_stats(2022, today.year))
     dfg.to_excel(writer, sheet_name="general", index=False)
-    
+
     usage_data = get_usage_data(
         start_year=2022, end_year=today.year, include_revisions=include_revisions
     )
@@ -498,4 +511,4 @@ def generate_statistics_report(include_revisions=True):
     return filename
 
 
-#generate_statistics_report()
+# generate_statistics_report()
