@@ -99,10 +99,15 @@ def _yearly_vault_stats(vault_folder, data, start_year, end_year):
     for year in range(start_year, end_year + 1):
         if year not in data:
             data[year] = {}
-        data[year]["num_datasets"] = VaultDataset.objects.filter(
-            vault_folder=vault_folder, created__year__lte=year, deleted__isnull=True
+            data[year]["num_datasets"] = 0
+            data[year]["num_published"] = 0
+            data[year]["size"] = 0
+        data[year]["num_datasets"] += VaultDataset.objects.filter(
+            vault_folder=vault_folder,
+            created__year__lte=year,
+            deleted__isnull=True,
         ).count()
-        data[year]["num_published"] = VaultDataset.objects.filter(
+        data[year]["num_published"] += VaultDataset.objects.filter(
             vault_folder=vault_folder,
             created__year__lte=year,
             status="PUBLISHED",
@@ -113,7 +118,7 @@ def _yearly_vault_stats(vault_folder, data, start_year, end_year):
             .order_by("collected")
             .last()
         )
-        data[year]["size"] = s.size if s is not None else 0
+        data[year]["size"] += s.size if s is not None else 0
     return data
 
 
