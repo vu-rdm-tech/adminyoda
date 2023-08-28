@@ -5,7 +5,7 @@ from projects.models import Project, MiscStats, VaultDataset, ResearchFolder, De
 from datetime import datetime
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
-from projects.reports import generate_yearly_report
+from projects.reports import generate_yearly_report, generate_statistics_report
 import mimetypes
 
 start_year = 2022
@@ -64,7 +64,16 @@ def download_billing_report(request, year: int):
     response = HttpResponse(fl, content_type=mime_type)
     response['Content-Disposition'] = "attachment; filename=%s" % filename
     return response
-        
+
+def download_statistics_report(request):
+    fl_path = generate_statistics_report(include_revisions=True)
+    filename = f'yoda_statistics_report_{today.year}-{today.month}-{today.day}.xlsx'
+
+    fl = open(fl_path, 'rb')
+    mime_type, _ = mimetypes.guess_type(fl_path)
+    response = HttpResponse(fl, content_type=mime_type)
+    response['Content-Disposition'] = "attachment; filename=%s" % filename
+    return response        
 
 def _quarterly_miscstats():
     quarters = [3, 6, 9, 12]

@@ -30,10 +30,11 @@
             <strong>Published datasets:</strong> {{ num_published }}
         </li>
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            <strong>Cost reports:</strong>
+            <strong>Reports:</strong>
             <span>
-                <a class="nav-link" href="{% url 'download_billing_report' year=previous_year %}">{{ previous_year }} (whole year)</a>
-    	        <a class="nav-link" href="{% url 'download_billing_report' year=current_year %}">{{ current_year }} (up until last stats)</a>
+                <a class="nav-link" href="{% url 'download_billing_report' year=previous_year %}">Cost report {{ previous_year }}</a>
+    	        <a class="nav-link" href="{% url 'download_billing_report' year=current_year %}">Cost report {{ current_year }}</a>
+                <a class="nav-link" href="{% url 'download_statistics_report' %}">Statistics report</a>
             </span>
         </li>
         
@@ -66,3 +67,4 @@
     </script>
 
 {% endblock %}
+
