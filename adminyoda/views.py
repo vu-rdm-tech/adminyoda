@@ -228,6 +228,23 @@ def project_chart_json(request):
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
 
+def group_chart_json(request):
+    labels = []
+    data = []
+    
+    miscstats = _quarterly_miscstats()
+    for s in miscstats:
+        labels.append(s.label)
+        data.append(s.groups_total)
+    datasets = [{
+        'label': 'Groups',
+        'backgroundColor': 'rgba(56,108,176, 0.4)',
+        'borderColor': 'rgba(56,108,176)',
+        'borderWidth': 1,
+        'data': data
+    }]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
 def user_chart_json(request):
     labels = []
     internal = []

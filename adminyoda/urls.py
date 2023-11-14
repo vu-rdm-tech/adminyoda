@@ -28,6 +28,7 @@ urlpatterns = [
     path('vault_size_chart_json', views.vault_size_chart_json, name='vault_size_chart_json'),
     path('user_chart_json', views.user_chart_json, name='user_chart_json'),
     path('project_chart_json', views.project_chart_json, name='project_chart_json'),
+    path('group_chart_json', views.group_chart_json, name='group_chart_json'),
     path('storage_chart_json', views.storage_chart_json, name='storage_chart_json'),
     path('dataset_chart_json', views.dataset_chart_json, name='dataset_chart_json'),
     path('faculty_chart_json', views.faculty_chart_json, name='faculty_chart_json'),
