@@ -389,7 +389,10 @@ def project_vault_size_chart_json(request, project_id):
     labels, research_stats, vault_stats = project_research_stats(project_id)
     i = 0
     for label in labels:
-        vault.append(round(vault_stats[label]['size'] / div, 2))
+        if label in vault_stats:
+            vault.append(round(vault_stats[label]['size'] / div, 2))
+        else:
+            vault.append(0)
         i += 1
     datasets = [
         {
@@ -411,7 +414,10 @@ def project_delta_chart_json(request, project_id):
     i = 0
     for label in labels:
         research.append(round((research_stats[label]['delta'] + research_stats[label]['revision_delta']) / div, 2))
-        vault.append(round(vault_stats[label]['delta'] / div, 2))
+        if label in vault_stats:
+            vault.append(round(vault_stats[label]['delta'] / div, 2))
+        else:
+            vault.append(0)
         i += 1
     datasets = [
         {
