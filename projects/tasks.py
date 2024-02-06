@@ -45,7 +45,7 @@ def create_projects():
                 faculty, department_abbr, projectname = _parse_yoda_name(rf.yoda_name)
                 if Department.objects.filter(abbreviation=department_abbr, faculty__iexact=faculty).exists():
                     logger.info(f"Create project for {rf.yoda_name} in {department_abbr}")
-                    d = Department.objects.get(abbreviation=department_abbr)
+                    d = Department.objects.get(abbreviation=department_abbr, faculty__iexact=faculty)
                     owner = Person.objects.get(pk=16)
                     budget = Budget.objects.get(pk=46)
                     p, created = Project.objects.get_or_create(
