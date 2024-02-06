@@ -13,7 +13,7 @@ RUN apt-get update && \
 
 COPY . .
 
-RUN chmod +x entrypoint.sh
+RUN chmod +x entrypoint.sh && chmod 777 -R /usr/src/app/static
 
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
 
