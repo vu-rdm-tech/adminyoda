@@ -55,7 +55,9 @@ def _monthly_research_stats(
 def _yearly_research_stats(folder, stats, start_year, end_year, include_revisions=True):
     for year in range(start_year, end_year + 1):
         if year not in stats:
-            stats[year] = {}
+            stats[year] = {
+                'size': 0,
+            }
         s = (
             ResearchStats.objects.filter(research_folder=folder, collected__year=year)
             .order_by("collected")
@@ -67,7 +69,7 @@ def _yearly_research_stats(folder, stats, start_year, end_year, include_revision
             else:
                 stats[year]["size"] += s.size
             if include_revisions:
-                stats[year]["size"] += s.size
+                stats[year]["size"] += s.revision_size
     return stats
 
 
@@ -205,7 +207,7 @@ def get_usage_data(start_year, end_year, include_revisions=True):
             "project": f"{project.department.faculty} {project.department.abbreviation} {project.title}",
             "title": project.title,
             "usage_details": f"https://adminyoda.labs.vu.nl/projects/{project.id}",
-            "created": project.created.strftime("%Y-%m-%d"),
+            "created": project.request_date.strftime("%Y-%m-%d"),
             "deleted": project.delete_date.strftime("%Y-%m-%d")
             if project.delete_date
             else "",
@@ -466,7 +468,7 @@ def general_stats(start_year, end_year, include_revisions=True):
         stats[year] = [
             Project.objects.filter(
                 Q(delete_date__isnull=True) | Q(delete_date__year__gt=year),
-                created__year__lte=year,
+                request_date__year__lte=year,
             )
             .all()
             .count(),
