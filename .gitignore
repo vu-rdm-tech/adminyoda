@@ -120,5 +120,5 @@ scripts/config.py
 setup_session.py
 
 # created by collectstatic
-static/admin/
-static/django_tables2/
+#static/admin/
+#static/django_tables2/
