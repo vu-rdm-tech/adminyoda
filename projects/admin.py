@@ -102,7 +102,8 @@ class ResearchAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    list_display = ("yoda_name", "category", "project", "size", "data_classification", "datasets", "newest_file", "deleted")
+    list_display = ("yoda_name", "category", "project", "size", "data_classification", "datasets", "newest_file", "created", "deleted")
+    readonly_fields = ("yoda_name", "category", "data_classification", "internal_users", "external_users", "datasets", "newest_file", "created", "deleted")
     ordering = ["yoda_name"]
     inlines=[
         VaultFolderInline,
@@ -131,7 +132,7 @@ class VaultAdmin(admin.ModelAdmin):
         return False
     def has_delete_permission(self, request, obj=None):
         return False
-
+    readonly_fields =  ('research_folder', 'yoda_name', 'deleted')
     ordering = ["yoda_name"]
     inlines=[
         VaultDatasetInline,
