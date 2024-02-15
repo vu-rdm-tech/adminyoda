@@ -43,7 +43,7 @@
     
     <canvas id="group-chart" data-url="{% url 'group_chart_json' %}"></canvas>
     <hr/>
-    <canvas id="project-chart" data-url="{% url 'project_chart_json' %}"></canvas>
+    <!--<canvas id="project-chart" data-url="{% url 'project_chart_json' %}"></canvas>-->
     <hr/>
     <canvas id="size-chart" data-url="{% url 'size_chart_json' %}"></canvas>
     <canvas id="dataset-chart" data-url="{% url 'dataset_chart_json' %}"></canvas>
@@ -59,7 +59,7 @@
     <script>
         $(function () {
             setStackedBarChart($("#group-chart"), 'Number of groups', false);
-            setStackedBarChart($("#project-chart"), 'Number of projects', false);
+            //setStackedBarChart($("#project-chart"), 'Number of projects', false);
             setStackedBarChart($("#size-chart"), 'Research and Vault size (GB)', false);
             setStackedBarChart($("#dataset-chart"), 'Archived and publlished datasets', false);
             //setStackedBarChart($("#research-size-chart"), 'Research size (GB)', false);
