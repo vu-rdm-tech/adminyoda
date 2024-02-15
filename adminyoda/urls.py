@@ -24,6 +24,7 @@ urlpatterns = [
     path('download_billing_report/<slug:year>', views.download_billing_report, name='download_billing_report'),
     path('download_statistics_report', views.download_statistics_report, name='download_statistics_report'),
     path('size_chart_json', views.size_chart_json, name='size_chart_json'),
+    path('size_breakdown_chart_json', views.size_breakdown_chart_json, name='size_breakdown_chart_json'),
     path('research_size_chart_json', views.research_size_chart_json, name='research_size_chart_json'),
     path('vault_size_chart_json', views.vault_size_chart_json, name='vault_size_chart_json'),
     path('user_chart_json', views.user_chart_json, name='user_chart_json'),

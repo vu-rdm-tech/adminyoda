@@ -474,26 +474,3 @@ def project_delta_with_revision_chart_json(request, project_id):
         },
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
-
-
-def size_breakdown_chart_json(request):
-    labels = ['empty', '0-10', '10-100', '100-500', '500-1000', '>1000']	
-    data = []
-    collected=MiscStats.objects.latest('collected').collected
-    data.append(ResearchStats.objects.filter(size = 0, collected = collected).all().count())
-    data.append(ResearchStats.objects.filter(size__gt = 0, size__lte = 10 * GB, collected = collected).all().count())
-    data.append(ResearchStats.objects.filter(size__gt = 10 * GB, size__lte = 100 * GB, collected = collected).all().count())
-    data.append(ResearchStats.objects.filter(size__gt = 100 * GB, size__lte = 500 * GB, collected = collected).all().count())
-    data.append(ResearchStats.objects.filter(size__gt = 500 * GB, size__lte = 1000 * GB, collected = collected).all().count())
-    data.append(ResearchStats.objects.filter(size__gt = 1000 * GB, collected = collected).all().count())
-    
-    datasets = [
-        {
-            'label': 'Research size breakdown',
-            'backgroundColor': 'rgb(128,177,211, 0.4)',
-            'borderColor': 'rgba(128,177,211)',
-            'borderWidth': 1,
-            'data': data,
-        },
-    ]
-    return JsonResponse(data={'labels': labels, 'datasets': datasets})

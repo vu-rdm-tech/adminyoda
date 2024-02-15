@@ -1,13 +1,14 @@
 from django.http import JsonResponse
 from django.http import HttpResponse
 from django.shortcuts import render
-from projects.models import Project, MiscStats, VaultDataset, ResearchFolder, Department
+from projects.models import Project, MiscStats, VaultDataset, ResearchFolder, Department, ResearchStats
 from datetime import datetime
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
 from projects.reports import generate_yearly_report, generate_statistics_report
 import mimetypes
 
+GB = 1024 * 1024 * 1024
 start_year = 2022
 today = datetime.now()
 end_month = today.month
@@ -36,6 +37,7 @@ def index(request):
         'current_year': end_year,
         'previous_year': end_year-1,
         'num_projects': num_projects,
+        #'stale_groups': ResearchStats.objects.filter(last_update__lt = cutoff).all().count,
         'unregistered_groups': ResearchFolder.objects.filter(project__isnull=True, deleted__isnull=True).all().count,
         'total_size': _convert_bytes(miscstats.size_total + miscstats.revision_size),
         'requested_size': round(requested_size, 1),
@@ -343,4 +345,27 @@ def faculty_chart_json(request):
         'backgroundColor': colors,
         'data': data
     }]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+
+def size_breakdown_chart_json(request):
+    labels = ['empty', '0-10', '10-100', '100-500', '500-1000', '>1000']	
+    data = []
+    collected=MiscStats.objects.latest('collected').collected
+    data.append(ResearchStats.objects.filter(size = 0, collected = collected).all().count())
+    data.append(ResearchStats.objects.filter(size__gt = 0, size__lte = 10 * GB, collected = collected).all().count())
+    data.append(ResearchStats.objects.filter(size__gt = 10 * GB, size__lte = 100 * GB, collected = collected).all().count())
+    data.append(ResearchStats.objects.filter(size__gt = 100 * GB, size__lte = 500 * GB, collected = collected).all().count())
+    data.append(ResearchStats.objects.filter(size__gt = 500 * GB, size__lte = 1000 * GB, collected = collected).all().count())
+    data.append(ResearchStats.objects.filter(size__gt = 1000 * GB, collected = collected).all().count())
+    
+    datasets = [
+        {
+            'label': 'Research size breakdown',
+            'backgroundColor': 'rgb(128,177,211, 0.4)',
+            'borderColor': 'rgba(128,177,211)',
+            'borderWidth': 1,
+            'data': data,
+        },
+    ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
