@@ -1,8 +1,9 @@
 from django.http import JsonResponse
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.utils.timezone import now, make_aware
 from projects.models import Project, MiscStats, VaultDataset, ResearchFolder, Department, ResearchStats
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
 from projects.reports import generate_yearly_report, generate_statistics_report
@@ -37,7 +38,7 @@ def index(request):
         'current_year': end_year,
         'previous_year': end_year-1,
         'num_projects': num_projects,
-        #'stale_groups': ResearchStats.objects.filter(last_update__lt = cutoff).all().count,
+        'stale_groups': stale_groups(days = 366, collected = miscstats.collected),
         'unregistered_groups': ResearchFolder.objects.filter(project__isnull=True, deleted__isnull=True).all().count,
         'total_size': _convert_bytes(miscstats.size_total + miscstats.revision_size),
         'requested_size': round(requested_size, 1),
@@ -49,6 +50,15 @@ def index(request):
         'num_departments': Department.objects.count()
     }
     return render(request, 'index.html', context=context)
+
+
+def stale_groups(days, collected):
+    # groups were newest file is older than <days> ago. Remember irods timestamps are always the date the file was updated on irods, not the original file date.
+    cutoff = make_aware(datetime.combine(collected, datetime.min.time())) - timedelta(days=days)
+    collected=MiscStats.objects.latest('collected').collected
+    newest_old = ResearchStats.objects.filter(newest_file__lt = cutoff, newest_file__gt = datetime.fromtimestamp(0), collected = collected).all().count()
+    # groups created before cutoff and empty
+    return newest_old
 
 
 @login_required(login_url='/admin/login/')
