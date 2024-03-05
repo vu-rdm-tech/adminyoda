@@ -1,7 +1,10 @@
 import django_tables2 as tables
 from django.utils.html import format_html
 import datetime
-
+from .models import Project
+from django_filters.views import FilterView
+from django_tables2.views import SingleTableMixin
+from django_filters import FilterSet
 
 class ProjectTable(tables.Table):
     title = tables.Column()
@@ -26,3 +29,17 @@ class ProjectTable(tables.Table):
     class Meta:
         attrs = {"class": "table"}
         template_name = "django_tables2/bootstrap4.html"
+
+class ProjectFilter(FilterSet):
+    class Meta:
+        model = Project
+        fields = {"title": ["exact", "contains"]}
+
+class FilteredPersonListView(SingleTableMixin, FilterView):
+    table_class = ProjectTable
+    model = Project
+    template_name = "template.html"
+
+    filterset_class = ProjectFilter
+    
+    
