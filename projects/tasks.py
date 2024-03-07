@@ -60,9 +60,21 @@ def create_projects():
                     rf.project = p
                     rf.save()
 
+def clean_projects():
+    # delete projects without research folders
+    logger.info(f"Deleting projects without research folders.")
+    for p in Project.objects.all():
+        active = False
+        for r in ResearchFolder.objects.filter(project=p):
+            if r.deleted is None:
+                active = True
+        if not active:
+            logger.info(f"Set project {p.title} as deleted.")
+            p.delete_date = now()
+            p.save()
 
-def cleanup():
-    # when a folder is deleted in Yoda it will no longer be part of the weekly data export. That means we can
+def clean_folders():
+        # when a folder is deleted in Yoda it will no longer be part of the weekly data export. That means we can
     # consider research, vault and dataset folder records last updated <days> before the last collection date (<last_update>) as deleted in Yoda.
     days = 2
     last_update = MiscStats.objects.order_by("collected").last().collected
@@ -93,6 +105,9 @@ def cleanup():
     vf.update(deleted=now())
     rf.update(deleted=now())
 
+def cleanup():
+    clean_folders()
+    clean_projects()
 
 def process_irods_stats():
     files = sorted(os.listdir(DATADIR))

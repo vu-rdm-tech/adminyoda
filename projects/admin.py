@@ -61,7 +61,7 @@ class ProjectAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    list_display = ["title", "owner", "department", "research_folders"]
+    list_display = ["title", "owner", "department", "research_folders", "delete_date"]
     ordering = ["title"]
     inlines=[
         ResearchFolderInline,
