@@ -4,9 +4,7 @@ from datetime import datetime
 import os, glob
 
 def find_newest_json(directory):
-    print(directory)
     list_of_files = glob.glob(f'{directory}/*')  # get list of all json files
-    print(list_of_files)
     if not list_of_files:  # if list is empty, return None
         return None
     latest_file = max(list_of_files, key=os.path.getctime)  # find the latest file
@@ -35,7 +33,8 @@ for member in list:
 
 
 today = datetime.now()
-filename = f'users_{today.strftime("%U")}.xlsx'
+filename = f'users_{latest_file[25:30]}.xlsx'
+print(filename)
 writer = pd.ExcelWriter(filename, engine="xlsxwriter")
 dfg = pd.DataFrame.from_dict(data=list)
 dfg.to_excel(writer, sheet_name="general", index=False)
