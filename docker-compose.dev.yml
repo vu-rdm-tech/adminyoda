@@ -41,6 +41,7 @@ services:
       DB_HOST: ${DB_HOST}
       DB_NAME: ${DB_NAME}
       DATADIR: /data
+      SRAMDATADIR: /sramdata
       SITE_NAME: adminyoda.labs.vu.nl
       SECRET: ${SECRET}
     command: python manage.py qcluster
@@ -48,6 +49,7 @@ services:
       - .:/usr/src/app
       - /docker/adminyoda/log:/usr/app/log
       - ${DATASRC}:/data:rw
+      - ${SRAMDATASRC}:/sramdata:rw
 
   adminyoda-db:
     container_name: ${DB_HOST}
