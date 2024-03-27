@@ -137,6 +137,18 @@ class VaultAdmin(admin.ModelAdmin):
     inlines=[
         VaultDatasetInline,
     ]
+    
+class DatasetAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
+    list_display = ('vault_folder', 'yoda_name', 'status', 'retention', 'readable_size', 'data_classification', 'created', 'deleted')
+    readonly_fields =  ('vault_folder', 'yoda_name', 'status', 'retention', 'readable_size', 'data_classification', 'created', 'deleted')
+    ordering = ["yoda_name"]
+    
+    def readable_size(self, obj):
+        return convert_bytes(obj.size)
 
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Project, ProjectAdmin)
@@ -144,4 +156,5 @@ admin.site.register(Budget, BudgetAdmin)
 admin.site.register(Department, DepartmentAdmin)
 admin.site.register(ResearchFolder, ResearchAdmin)
 admin.site.register(VaultFolder, VaultAdmin)
+admin.site.register(VaultDataset, DatasetAdmin)
 
