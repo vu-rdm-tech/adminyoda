@@ -161,8 +161,20 @@ class IrodsData():
                 except:
                     status = ''
                 if status in ['PUBLISHED', 'DEPUBLISHED']:
-                    stats['datasets'][dataset]['landingPageUrl'] = col.metadata.get_one(
-                        'org_publication_landingPageUrl').value
+                    try:
+                        stats['datasets'][dataset]['landingPageUrl'] = col.metadata.get_one(
+                            'org_publication_landingPageUrl').value
+                    except:
+                        stats['datasets'][dataset]['landingPageUrl'] = ''
+                    try:
+                        stats['datasets'][dataset]['doi'] = col.metadata.get_one('org_publication_versionDOI').value
+                    except:
+                        stats['datasets'][dataset]['doi'] = ''
+                    try:
+                        stats['datasets'][dataset]['publication_date'] = col.metadata.get_one(
+                            'org_publication_publicationDate').value   
+                    except:	
+                        stats['datasets'][dataset]['publication_date'] = ''
                 stats['datasets'][dataset]['status'] = status
                 try:
                     retention_period = col.metadata.get_one('Retention_Period').value
@@ -174,4 +186,8 @@ class IrodsData():
                 except:
                     data_classification = ''
                 stats['datasets'][dataset]['data_classification'] = data_classification
+                try:
+                    data_access_rights = col.metadata.get_one('org_publication_accessRestriction').value
+                except:
+                    data_access_rights = ''
         return stats
