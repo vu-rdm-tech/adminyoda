@@ -32,8 +32,8 @@ class ResearchFolderInline(admin.TabularInline):
         return False
     def has_delete_permission(self, request, obj=None):
         return False
-    fields = ('category', 'data_classification', 'internal_users', 'external_users', 'deleted')
-    readonly_fields = ('category', 'data_classification', 'internal_users', 'external_users', 'deleted')
+    fields = ('category', 'data_classification', 'internal_users', 'external_users', 'sram_open_invitations', 'sram_memberships', 'deleted')
+    readonly_fields = ('category', 'data_classification', 'internal_users', 'external_users', 'sram_open_invitations', 'sram_memberships', 'deleted')
     model=ResearchFolder
     extra = 0
 
@@ -103,7 +103,7 @@ class ResearchAdmin(admin.ModelAdmin):
         return False
 
     list_display = ("yoda_name", "category", "project", "size", "data_classification", "datasets", "newest_file", "created", "deleted")
-    readonly_fields = ("yoda_name", "category", "data_classification", "internal_users", "external_users", "datasets", "newest_file", "created", "deleted")
+    readonly_fields = ("yoda_name", "category", "data_classification", "internal_users", "external_users", "sram_co_id", "sram_open_invitations", "sram_memberships", "datasets", "newest_file", "created", "deleted")
     ordering = ["yoda_name"]
     inlines=[
         VaultFolderInline,

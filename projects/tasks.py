@@ -21,6 +21,7 @@ from django.utils.timezone import now, make_aware
 from django.db.models.base import ObjectDoesNotExist
 
 DATADIR = os.environ.get("DATADIR")
+SRAMDATADIR = os.environ.get("SRAMDATADIR")
 logger = logging.getLogger(__name__)
 
 
@@ -108,6 +109,30 @@ def clean_folders():
 def cleanup():
     clean_folders()
     clean_projects()
+
+def process_sram_stats():
+    files = sorted(os.listdir(SRAMDATADIR))
+    logger.info(f'listing of datadir: [{", ".join(files)}]')
+    cnt = 0
+    for file in files:
+        if file.endswith('sram_collaboration_membercount.json'):
+            cnt = cnt + 1
+            logger.info(f"processing {file}")
+            with open(f"{SRAMDATADIR}/{file}", "r") as fp:
+                data = json.load(fp)
+                for co_id, data in data.items():
+                    if data['name'].startswith('yoda-research-'):
+                        try:
+                            rf = ResearchFolder.objects.get(yoda_name=f"{data['name'][5:]}")
+                            rf.sram_memberships = data['membership_count']
+                            rf.sram_open_invitations = data['invitation_count']
+                            rf.sram_co_id = co_id
+                            rf.save()
+                        except ObjectDoesNotExist:
+                            logger.warning(f"ResearchFolder {data['name'][5:]} not found in the database.")
+            logger.info(f"move {file} to archived")
+            shutil.move(f"{SRAMDATADIR}/{file}", f"{SRAMDATADIR}/archived/{file}")
+    logger.info(f"{cnt} files processed")
 
 def process_irods_stats():
     files = sorted(os.listdir(DATADIR))
