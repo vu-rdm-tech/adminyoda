@@ -187,7 +187,7 @@ class IrodsData():
                     data_classification = ''
                 stats['datasets'][dataset]['data_classification'] = data_classification
                 try:
-                    data_access_rights = col.metadata.get_one('org_publication_accessRestriction').value
+                    stats['datasets'][dataset]['data_access_rights'] = col.metadata.get_one('org_publication_accessRestriction').value
                 except:
-                    data_access_rights = ''
+                    stats['datasets'][dataset]['data_access_rights'] = ''
         return stats
