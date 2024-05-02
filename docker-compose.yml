@@ -19,7 +19,7 @@ services:
       DB_NAME: ${DB_NAME}
       SITE_NAME: adminyoda.labs.vu.nl
       SECRET: ${SECRET}
-    command: gunicorn adminyoda.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn adminyoda.wsgi:application --bind 0.0.0.0:8000 --timeout 300
     volumes:
       - ${DOCKER_DATA}/adminyoda/log:/usr/app/log
       - static:/usr/app/static
