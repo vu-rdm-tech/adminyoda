@@ -90,6 +90,7 @@ def download_statistics_report(request):
 def _quarterly_miscstats():
     quarters = [3, 6, 9, 12]
     stats = []
+    last_size = 0
     for year in range(start_year, end_year + 1):
         q = 1
         for month in quarters:
@@ -98,6 +99,13 @@ def _quarterly_miscstats():
             if s is not None:
                 s.label = f'{year}-Q{q}'
                 stats.append(s)
+                if last_size > 0:
+                    s.research_delta = s.size_research + s.revision_size - last_size
+                    s.research_delta_percent = round((s.research_delta) / last_size * 100, 2)
+                else:
+                    s.delta = 0
+                    s.research_delta_percent = 0
+                last_size = s.size_research + s.revision_size
             q += 1
     return stats
 
@@ -161,6 +169,24 @@ def research_size_chart_json(request):
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
+
+def research_percentage_chart_json(request):
+    labels = []
+    research = []
+    stats = _quarterly_miscstats()
+    for s in stats:
+        labels.append(s.label)
+        research.append(s.research_delta_percent)
+    datasets = [
+        {
+            'label': 'Research',
+            'backgroundColor': 'rgba(253,192,134, 0.4)',
+            'borderColor': 'rgba(253,192,134)',
+            'borderWidth': 1,
+            'data': research,
+        },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
 def size_chart_json(request):
     labels = []
