@@ -1,0 +1,28 @@
+{% extends "admin/index.html" %}
+
+{% block content  %}
+
+<div class="module">
+    <table>
+        <caption>
+            REPORTS
+        </caption>
+        <tbody>
+            <tr class="model-group">
+                <th scope="row"><a href="{% url 'download_statistics_report' %}">Statistics report</a></th>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr class="model-group">
+                <th scope="row"><a href="/user_list">User list</a></th>
+                <td></td>
+                <td></td>
+            </tr>
+            
+        </tbody>
+    </table>
+       
+</div>
+
+    {{ block.super }}
+{% endblock %}
