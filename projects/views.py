@@ -3,7 +3,7 @@ from django.shortcuts import render
 from .models import Project, MiscStats, VaultDataset, ResearchFolder, Department, VaultFolder, VaultStats, \
     ResearchStats, Person, Datamanager
 from datetime import datetime
-from .tables import ProjectTable
+from .tables import ProjectTable, ProjectFilter
 from django_tables2 import RequestConfig
 
 GB = 1024 * 1024 * 1024
@@ -53,9 +53,10 @@ def projects_index_table(request):
     if d['num_groups'] > 0:
         data.append(d)
     table = ProjectTable(data)
+    f = ProjectFilter(request.GET, queryset=Project.objects.all())
     RequestConfig(request, paginate={'per_page': 10}).configure(table)
     return render(request, "projects/index.html", {
-        "table": table
+        "table": table, 'filter': f
     })
 
 
