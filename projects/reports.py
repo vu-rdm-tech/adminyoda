@@ -244,6 +244,18 @@ def calculate_blocks(bytes, block_size_GB=1024):
     return int(math.ceil(gigabytes / block_size_GB))
 
 
+def next_month(year, month):
+    if month < 12:
+        return year, month+1
+    else:
+        return year+1, 1
+
+def previous_month(year, month):
+    if month > 1:
+        return year, month-1
+    else:
+        return year-1, 12
+
 def add_monthly_costs_to_projectdata(year, data):
     """Loop through the data dict and use the monthly size to calculate the monthly costs
 
@@ -254,21 +266,40 @@ def add_monthly_costs_to_projectdata(year, data):
     Returns:
         the data dict with the monthly costs added
     """
+
+
     for project in data:
         active_cost = 0
         archive_cost = 0
         if year in data[project]["research"]:
             for month in data[project]["research"][year]:
                 cost = 0
-                if "size" in data[project]["research"][year][month]:
+                ny, nm = next_month(year, month)
+                py, pm = previous_month(year, month)                                                
+                shrunk = False
+                try:
+                    if data[project]["research"][ny][nm]["size"] < data[project]["research"][year][month]["size"] and data[project]["research"][py][pm]["size"] < data[project]["research"][year][month]["size"]:
+                        shrunk = True
+                        print(data[project]["research"][year][month]["size"],data[project]["research"][py][pm]["size"],data[project]["research"][ny][nm]["size"])
+                except KeyError:
+                    # month or next  month does not exist in data, ignore
+                    shrunk = False
+                try:
+                    if shrunk: # New data was deleted in the next period, so we won't charge for it
+                        billable_size = data[project]["research"][ny][nm]["size"]
+                    else:
+                        billable_size = data[project]["research"][year][month]["size"] 
                     cost = (
                         calculate_yearly_cost(
-                            data[project]["research"][year][month]["size"]
+                            billable_size
                         )
                         / 12
                     )
-                    data[project]["research"][year][month]["cost"] = cost
-                    active_cost += cost
+                except KeyError:
+                    # month does not exist
+                    cost = 0
+                data[project]["research"][year][month]["cost"] = cost
+                active_cost += cost
             for month in data[project]["datasets"][year]:
                 cost = 0
                 i = 0

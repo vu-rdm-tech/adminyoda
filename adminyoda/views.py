@@ -28,6 +28,8 @@ def _convert_bytes(num):
             return "%3.1f %s" % (num, x)
         num /= 1024.0
 
+# divide bytes by divTB to get TeraBytes
+divTB = (1024 * 1024 * 1024 * 1024)
 
 # Create your views here.
 def index(request):
@@ -133,11 +135,10 @@ def _all_miscstats():
 def vault_size_chart_json(request):
     labels = []
     vault = []
-    div = (1024 * 1024 * 1024)
     stats = _quarterly_miscstats()
     for s in stats:
         labels.append(s.label)
-        vault.append(round(s.size_vault / div, 2))
+        vault.append(round(s.size_vault / divTB, 2))
     datasets = [
         {
             'label': 'Vault',
@@ -153,11 +154,10 @@ def vault_size_chart_json(request):
 def research_size_chart_json(request):
     labels = []
     research = []
-    div = (1024 * 1024 * 1024)
     stats = _quarterly_miscstats()
     for s in stats:
         labels.append(s.label)
-        research.append(round(s.size_research / div, 2) + round(s.revision_size / div, 2))
+        research.append(round(s.size_research / divTB, 2) + round(s.revision_size / divTB, 2))
     datasets = [
         {
             'label': 'Research',
@@ -192,12 +192,11 @@ def size_chart_json(request):
     labels = []
     research = []
     vault = []
-    div = (1024 * 1024 * 1024)
     stats = _quarterly_miscstats()
     for s in stats:
         labels.append(s.label)
-        research.append(round(s.size_research / div, 2) + round(s.revision_size / div, 2))
-        vault.append(round(s.size_vault / div, 2))
+        research.append(round(s.size_research / divTB, 2) + round(s.revision_size / divTB, 2))
+        vault.append(round(s.size_vault / divTB, 2))
     datasets = [
         {
             'label': 'Vault',
@@ -222,7 +221,6 @@ def dataset_chart_json(request):
     labels = []
     archived = []
     published = []
-    div = (1024 * 1024 * 1024)
     stats = _quarterly_miscstats()
     for s in stats:
         labels.append(s.label)
@@ -317,15 +315,14 @@ def storage_chart_json(request):
     vault = []
     revisions = []
     trash = []
-    div = (1024 * 1024 * 1024)
     stats = _quarterly_miscstats()
     # stats = _get_quarterly_miscstats()
     for s in stats:
         labels.append(s.label)
-        research.append(round(s.size_research / div, 2))
-        vault.append(round(s.size_vault / div, 2))
-        revisions.append(round(s.revision_size / div, 2))
-        trash.append(round(s.trash_size / div, 2))
+        research.append(round(s.size_research / divTB, 2))
+        vault.append(round(s.size_vault / divTB, 2))
+        revisions.append(round(s.revision_size / divTB, 2))
+        trash.append(round(s.trash_size / divTB, 2))
     datasets = [
         {
             'label': 'Research',
