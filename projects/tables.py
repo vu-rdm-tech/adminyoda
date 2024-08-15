@@ -34,12 +34,12 @@ class ProjectTable(tables.Table):
 class ProjectFilter(FilterSet):
     class Meta:
         model = Project
-        fields = {"title": ["exact", "contains"]}
+        fields = {"title": ["contains"], "department__name": ["contains"], "department__faculty": ["contains"]}
 
 class FilteredProjectListView(SingleTableMixin, FilterView):
     table_class = ProjectTable
     model = Project
-    template_name = "template.html"
+    template_name = "projects/index.html"
 
     filterset_class = ProjectFilter
 

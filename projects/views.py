@@ -32,9 +32,9 @@ def friendly_size(num):
 
 # Create your views here.
 def projects_index_table(request):
-    pr = Project.objects.filter(delete_date__isnull=True).all().order_by('title')
+    f = ProjectFilter(request.GET, queryset=Project.objects.filter(delete_date__isnull=True).all().order_by('title'))
     data = []
-    for p in pr:
+    for p in f.qs:
         d = {}
         d['id'] = p.id
         d['title'] = p.title
@@ -52,8 +52,8 @@ def projects_index_table(request):
     d['faculty'] = '-'
     if d['num_groups'] > 0:
         data.append(d)
+    
     table = ProjectTable(data)
-    f = ProjectFilter(request.GET, queryset=Project.objects.all())
     RequestConfig(request, paginate={'per_page': 10}).configure(table)
     return render(request, "projects/index.html", {
         "table": table, 'filter': f
