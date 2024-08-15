@@ -222,7 +222,7 @@ Sample:
 ```
 In the Django admin a "process irods stats" job should be created that runs `projects.tasks.process_irods_stats`. https://adminyoda.labs.vu.nl/admin/django_q/schedule/
 ![alt text](docs/queue.png)
-This looks for data files in folder `DATASRC`, processes them and moves them to `DATASRC/archived`. By running it hourly it does not matter when a new datafile is created.
+This looks for data files in folder `DATASRC`, processes them and moves them to `DATASRC/archived` when finished. By running it hourly it does not matter when a new datafile is created.
 
 Make sure to set the correct datafolder `DATASRC` in `.env`.
 ## Dealing with deleted collections
@@ -235,25 +235,26 @@ Note that the data is not deleted from the database, we want to keep all histori
 Using the buttoms you can also open the forms to edit or add _Persons_, _Departments_ and _Budget codes_.
 
 Note that _Research folders_, _Vault folders_ and _Vault datasets_ cannot be edited via the admin interface because these tables are filled automatically.
-### Adding research folder/group to a project
-You cannot do this in the _project_ form instead go to _Research folders_
-![alt text](docs/add-folder-to-project.png)
-Use the dropdown list to select the project this _Research folder_ needs to be added to. You can use the _+_ button to open the _add new project_-form.
+
 #### Deleting a project
 Since we want to keep historical data you cannot delete a project record. Instead set the _Delete date_ to today.
 **Only do this when the project has no active Research Folders attached!**
 
+### Adding research folder/group to a project
+You cannot do this in the _project_ form instead go to _Research folders_
+![alt text](docs/add-folder-to-project.png)
+Use the dropdown list to select the project this _Research folder_ needs to be added to. You can use the _+_ button to open the _add new project_-form.
 
-### Automatically creating a Project for a new Group
-Most of the statistics are Project based (because a Research project could use more than one Group). For this reason the system expects new Projects to be entered manually, the associated "research folders" can then be added to the project.
+### Automatically creating Projects for a new Groups
+Most of the statistics are _Project_-based (because a research project could use more than one Yoda Group). For this reason the system expects new Projects to be entered manually, the associated "research folders" can then be added to the project.
 
-Since the manual administration might get delayed you can also use Django Q to schedule  `projects.tasks.create_projects`. This will automatically create a _Project_ for each orphan _Research Folder_ based on the group/folder name.
+Since the manual administration costs time and might be delayed you can also use Django Q to schedule  `projects.tasks.create_projects`. This will automatically create a _Project_ for each orphan _Research Folder_ based on the group/folder name.
 
-Group names are usually formatted: `research-<faculty>-<department>-<projectname>`. A new project will be created with Name _projectname_, _department_ and _faculty_. Owner and Cost Center are set to dummy entries. These can be added in the admin interface later.
+Group names are usually formatted: `research-<faculty>-<department>-<projectname>`. A new project will be created with Name _projectname_, _department_ and _faculty_. Owner and Cost Center are set to dummy entries, they can be added in the admin interface later.
 
-- The system does not automatically add departments and faculties. If they cannot be found the research folder stays unconnected to a project. Add the Department to the database manually and the `create_projects`-job will create the project when it runs again.
-- 
+- `projects.tasks.create_projects` does not automatically add departments and faculties. If they cannot be found the research folder stays unconnected to a project. Add the Department to the database manually and the `create_projects`-job will create the project when it runs again.
 
-Note that with this process N projects will be created even if all N groups/folders belong to the same research project. This can easily be rectified by adding all the folders to a single project in the database and setting the extra projects to Deleted.
+Note that with this process N projects will be created even if all N Yoda groups/folders belong to the same research project. This can easily be rectified by adding all the folders to a single project in the database and setting the extra projects to _Deleted_.
+
 ## Customizing the _Projects_ forms and lists
 These use the standard Django admin forms and can easily be edited via [projects/admin.py](projects/admin.py), consult the [Django Documentation](https://docs.djangoproject.com/en/4.2/ref/contrib/admin/).
