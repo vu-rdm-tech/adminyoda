@@ -8,6 +8,9 @@ from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
 from projects.reports import generate_yearly_report, generate_statistics_report
 import mimetypes
+import logging
+
+logger = logging.getLogger(__name__)
 
 GB = 1024 * 1024 * 1024
 start_year = 2022
@@ -359,6 +362,7 @@ def storage_chart_json(request):
 
 def faculty_chart_json(request):
     labels = []
+    tempdata = {}
     data = []
     index = {}
     i = 0
@@ -366,13 +370,17 @@ def faculty_chart_json(request):
     projects = Project.objects.filter(delete_date__isnull=True).order_by('department').all()
     for project in projects:
         faculty = Department.objects.get(id=project.department.id).faculty
-        if faculty not in labels:
-            index[faculty] = i
-            data.append(0)
-            labels.append(faculty)
-            colors.append(COLORSET[i])
-            i += 1
-        data[index[faculty]] += 1
+        if faculty not in tempdata:
+            tempdata[faculty] = 0
+        tempdata[faculty] += 1
+    i = 0
+    for faculty in dict(reversed(sorted(tempdata.items(), key=lambda item: item[1]))):
+        logger.info(faculty)
+        data.append(tempdata[faculty])
+        labels.append(faculty)
+        colors.append(COLORSET[i])
+        i+=1
+
     datasets = [{
         'label': 'Faculty',
         'backgroundColor': colors,
