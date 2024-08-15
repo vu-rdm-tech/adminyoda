@@ -1,7 +1,10 @@
 import django_tables2 as tables
 from django.utils.html import format_html
 import datetime
-
+from django_filters.views import FilterView
+from django_filters import FilterSet
+from django_tables2.views import SingleTableMixin
+from projects.models import Project
 
 class ProjectTable(tables.Table):
     title = tables.Column()
@@ -26,3 +29,18 @@ class ProjectTable(tables.Table):
     class Meta:
         attrs = {"class": "table"}
         template_name = "django_tables2/bootstrap4.html"
+
+
+class ProjectFilter(FilterSet):
+    class Meta:
+        model = Project
+        fields = {"title": ["contains"], "department__name": ["contains"], "department__faculty": ["contains"]}
+
+class FilteredProjectListView(SingleTableMixin, FilterView):
+    table_class = ProjectTable
+    model = Project
+    template_name = "projects/index.html"
+
+    filterset_class = ProjectFilter
+
+
