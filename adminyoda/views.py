@@ -247,6 +247,30 @@ def dataset_chart_json(request):
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
+def rights_chart_json(request):
+    labels = []
+    data = []
+    index = {}
+    i = 0
+    colors = []
+    vault_datasets = VaultDataset.objects.filter(deleted__isnull=True, status="PUBLISHED").all()
+    for set in vault_datasets:
+        if set.publication_access not in labels:
+            index[set.publication_access]=i
+            labels.append(set.publication_access)
+            colors.append(COLORSET[i])
+            data.append(0)
+            i += 1
+        data[index[set.publication_access]] += 1
+    
+    datasets = [{
+        'label': 'Publication access rights',
+        'backgroundColor': colors,
+        'data': data
+    }]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+
 def project_chart_json(request):
     labels = []
     data = []

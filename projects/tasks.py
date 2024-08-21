@@ -241,22 +241,17 @@ def process_irods_stats():
                                 dataset, created = VaultDataset.objects.get_or_create(
                                     yoda_name=set, vault_folder=vaultfolder
                                 )
-                                dataset.status = data["collections"][
-                                    vaultfolder.yoda_name
-                                ]["datasets"][set]["status"]
-                                dataset.retention = int(
-                                    data["collections"][vaultfolder.yoda_name][
-                                        "datasets"
-                                    ][set]["retention_period"]
-                                )
-                                dataset.data_classification = data["collections"][
-                                    vaultfolder.yoda_name
-                                ]["datasets"][set]["data_classification"]
-                                dataset.size = data["collections"][
-                                    vaultfolder.yoda_name
-                                ]["datasets"][set]["size"]
+                                set_data = data["collections"][vaultfolder.yoda_name]["datasets"][set]
+                                dataset.status = set_data["status"]
+                                dataset.retention = int(set_data["retention_period"])
+                                dataset.data_classification = set_data["data_classification"]
+                                dataset.size = set_data["size"]
+                                dataset.creation_date = set_data["create_date"]
                                 if dataset.status == "PUBLISHED":
                                     published_cnt += 1
+                                    dataset.publication_date = set_data["publication_date"]
+                                    dataset.publication_doi = set_data["doi"]
+                                    dataset.publication_access = set_data["data_access_rights"]
                                 dataset.save()
                             vaultsize = data["collections"][collection]["size"]
                             VaultStats.objects.update_or_create(
