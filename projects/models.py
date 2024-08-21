@@ -111,6 +111,10 @@ class VaultDataset(models.Model):
     retention = models.IntegerField(default=10)
     data_classification = models.CharField(max_length=255, default="")
     size = models.BigIntegerField(default=0)
+    creation_date = models.DateTimeField(blank=True, null=True)
+    publication_date = models.DateTimeField(blank=True, null=True)
+    publication_doi = models.CharField(max_length=255, blank=True, null=True)
+    publication_access = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     deleted = models.DateTimeField(blank=True, null=True)  # just in case

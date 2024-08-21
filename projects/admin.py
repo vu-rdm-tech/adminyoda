@@ -53,8 +53,9 @@ class VaultDatasetInline(admin.TabularInline):
     def has_delete_permission(self, request, obj=None):
         return False
     model=VaultDataset
-    fields = ('yoda_name', 'status', 'retention', 'size', 'data_classification', 'deleted')
-    readonly_fields = ('yoda_name', 'status', 'retention', 'size', 'data_classification', 'deleted')
+    fields = ('yoda_name', 'status', 'retention', 'size', 'creation_date', 'publication_date', 'publication_doi', 'publication_access','data_classification', 'deleted')
+    #fields = ('yoda_name', 'status', 'retention', 'size', 'data_classification', 'deleted')
+    readonly_fields = ('yoda_name', 'status', 'retention', 'size', 'creation_date', 'publication_date', 'publication_doi', 'publication_access','data_classification', 'deleted')
     extra = 0
 
 class ProjectAdmin(admin.ModelAdmin):
@@ -144,7 +145,7 @@ class DatasetAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
     list_display = ('vault_folder', 'yoda_name', 'status', 'retention', 'readable_size', 'data_classification', 'created', 'deleted')
-    readonly_fields =  ('vault_folder', 'yoda_name', 'status', 'retention', 'size', 'readable_size', 'data_classification', 'created', 'deleted')
+    readonly_fields =  ('vault_folder', 'yoda_name', 'status', 'retention', 'size', 'readable_size', 'data_classification', 'created', 'deleted', 'creation_date', 'publication_date', 'publication_doi', 'publication_access')
     ordering = ["yoda_name"]
     
     def readable_size(self, obj):

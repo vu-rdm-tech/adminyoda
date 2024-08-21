@@ -34,4 +34,5 @@ urlpatterns = [
     path('storage_chart_json', views.storage_chart_json, name='storage_chart_json'),
     path('dataset_chart_json', views.dataset_chart_json, name='dataset_chart_json'),
     path('faculty_chart_json', views.faculty_chart_json, name='faculty_chart_json'),
+    path('rights_chart_json', views.rights_chart_json, name='rights_chart_json'),
 ]
