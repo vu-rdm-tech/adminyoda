@@ -64,7 +64,7 @@ def create_projects():
 def clean_projects():
     # delete projects without research folders
     logger.info(f"Deleting projects without research folders.")
-    for p in Project.objects.all():
+    for p in Project.objects.filter(delete_date__isnull=True).all():
         active = False
         for r in ResearchFolder.objects.filter(project=p):
             if r.deleted is None:
