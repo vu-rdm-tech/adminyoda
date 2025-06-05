@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 GB = 1024 * 1024 * 1024
-start_year = 2022
+start_year = 2023
 today = datetime.now()
 end_month = today.month
 end_year = today.year
