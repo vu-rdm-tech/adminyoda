@@ -39,11 +39,13 @@ def index(request):
     num_projects = Project.objects.filter(delete_date__isnull=True).all().count()
     requested_size = Project.objects.aggregate(total=Sum('requested_size'))['total'] / 1024  # TB
     miscstats = MiscStats.objects.latest('collected')
+    stalecnt, stalesize = stale_groups(days = 366, collected = miscstats.collected)
     context = {
         'current_year': end_year,
         'previous_year': end_year-1,
         'num_projects': num_projects,
-        'stale_groups': stale_groups(days = 366, collected = miscstats.collected),
+        'stale_groups': stalecnt,
+        'stale_size': _convert_bytes(stalesize),
         'unregistered_groups': ResearchFolder.objects.filter(project__isnull=True, deleted__isnull=True).all().count,
         'total_size': _convert_bytes(miscstats.size_total + miscstats.revision_size),
         'requested_size': round(requested_size, 1),
@@ -61,9 +63,13 @@ def stale_groups(days, collected):
     # groups were newest file is older than <days> ago. Remember irods timestamps are always the date the file was updated on irods, not the original file date.
     cutoff = make_aware(datetime.combine(collected, datetime.min.time())) - timedelta(days=days)
     collected=MiscStats.objects.latest('collected').collected
-    newest_old = ResearchStats.objects.filter(newest_file__lt = cutoff, newest_file__gt = datetime.fromtimestamp(0), collected = collected).all().count()
+    #newest_old = ResearchStats.objects.filter(newest_file__lt = cutoff, newest_file__gt = datetime.fromtimestamp(0), collected = collected).all().count()
+    stalecols = ResearchStats.objects.filter(newest_file__lt = cutoff, newest_file__gt = datetime.fromtimestamp(0), collected = collected).all()
+    size = 0
+    for col in stalecols:
+        size += col.size + col.revision_size
     # groups created before cutoff and empty
-    return newest_old
+    return stalecols.count(), size
 
 
 @login_required(login_url='/admin/login/')
