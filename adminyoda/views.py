@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils.timezone import now, make_aware
-from projects.models import Project, MiscStats, VaultDataset, ResearchFolder, Department, ResearchStats
+from projects.models import Project, MiscStats, VaultFolder, VaultDataset, ResearchFolder, Department, ResearchStats, VaultStats
 from datetime import datetime, timedelta
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
@@ -403,6 +403,43 @@ def faculty_chart_json(request):
         if faculty not in tempdata:
             tempdata[faculty] = 0
         tempdata[faculty] += 1
+    i = 0
+    for faculty in dict(reversed(sorted(tempdata.items(), key=lambda item: item[1]))):
+        logger.info(faculty)
+        data.append(tempdata[faculty])
+        labels.append(faculty)
+        colors.append(COLORSET[i])
+        i+=1
+
+    datasets = [{
+        'label': 'Faculty',
+        'backgroundColor': colors,
+        'data': data
+    }]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+
+def faculty_size_chart_json(request):
+    labels = []
+    tempdata = {}
+    data = []
+    index = {}
+    i = 0
+    colors = []
+    projects = Project.objects.filter(delete_date__isnull=True).order_by('department').all()
+    for project in projects:
+        faculty = Department.objects.get(id=project.department.id).faculty
+        if faculty not in tempdata:
+            tempdata[faculty] = 0
+        tempdata[faculty] += 1
+        researchfolders = ResearchFolder.objects.filter(
+            project=project
+        )
+        for rf in researchfolders:
+            researchstats = ResearchStats.objects.filter(research_folder=rf).latest('created')
+            vaultfolder = VaultFolder.objects.get(research_folder=rf)
+            vaultstats = VaultStats.objects.filter(vault_folder=vaultfolder).latest('created')
+            tempdata[faculty] += (researchstats.size + researchstats.revision_size + vaultstats.size) / GB
     i = 0
     for faculty in dict(reversed(sorted(tempdata.items(), key=lambda item: item[1]))):
         logger.info(faculty)

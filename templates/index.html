@@ -46,6 +46,8 @@
     <hr/>
     <canvas id="faculty-chart" data-url="{% url 'faculty_chart_json' %}"></canvas>
     <hr/>
+    <canvas id="faculty-size-chart" data-url="{% url 'faculty_size_chart_json' %}"></canvas>
+    <hr/>
     <canvas id="size-chart" data-url="{% url 'size_chart_json' %}"></canvas>
     <hr/>
     <canvas id="research-percentage-chart" data-url="{% url 'research_percentage_chart_json' %}"></canvas>
@@ -78,6 +80,7 @@
             //setStackedBarChart($("#vault-size-chart"), 'Vault size (GB)', false);
             setStackedBarChart($("#user-chart"), 'Number of users', true);
             setPieChart($("#faculty-chart"), 'Projects per faculty', false);
+            setPieChart($("#faculty-size-chart"), 'Storage per faculty', false);
             setPieChart($("#rights-chart"), 'Publication access rights', false);
         });
     </script>
