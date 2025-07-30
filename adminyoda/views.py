@@ -390,6 +390,15 @@ def storage_chart_json(request):
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
 
 
+def _faculty_colors(data):
+    colorlist={}
+    i = 0
+    logger.debug(data)
+    for faculty in dict(sorted(data.items())):
+        colorlist[faculty]=COLORSET[i]
+        i+=1
+    return colorlist
+
 def faculty_chart_json(request):
     labels = []
     tempdata = {}
@@ -403,12 +412,12 @@ def faculty_chart_json(request):
         if faculty not in tempdata:
             tempdata[faculty] = 0
         tempdata[faculty] += 1
+    colorlist = _faculty_colors(tempdata)
     i = 0
     for faculty in dict(reversed(sorted(tempdata.items(), key=lambda item: item[1]))):
-        logger.info(faculty)
         data.append(tempdata[faculty])
         labels.append(faculty)
-        colors.append(COLORSET[i])
+        colors.append(colorlist[faculty])
         i+=1
 
     datasets = [{
@@ -440,12 +449,12 @@ def faculty_size_chart_json(request):
             vaultfolder = VaultFolder.objects.get(research_folder=rf)
             vaultstats = VaultStats.objects.filter(vault_folder=vaultfolder).latest('created')
             tempdata[faculty] += (researchstats.size + researchstats.revision_size + vaultstats.size) / GB
+    colorlist = _faculty_colors(tempdata)
     i = 0
     for faculty in dict(reversed(sorted(tempdata.items(), key=lambda item: item[1]))):
-        logger.info(faculty)
         data.append(tempdata[faculty])
         labels.append(faculty)
-        colors.append(COLORSET[i])
+        colors.append(colorlist[faculty])
         i+=1
 
     datasets = [{
