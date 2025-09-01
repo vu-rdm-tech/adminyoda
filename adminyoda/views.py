@@ -440,7 +440,6 @@ def faculty_size_chart_json(request):
         faculty = Department.objects.get(id=project.department.id).faculty
         if faculty not in tempdata:
             tempdata[faculty] = 0
-        tempdata[faculty] += 1
         researchfolders = ResearchFolder.objects.filter(
             project=project
         )
