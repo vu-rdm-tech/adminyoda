@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
 from projects.reports import generate_yearly_report, generate_statistics_report
+from projects.views import project_research_stats
 import mimetypes
 import logging
 
@@ -485,3 +486,86 @@ def size_breakdown_chart_json(request):
         },
     ]
     return JsonResponse(data={'labels': labels, 'datasets': datasets})
+
+def _quarterly_paid_free_stats(cutoff1=500*GB, cutoff2=2*divTB):
+    quarters = [3, 6, 9, 12]
+    stats = {}
+    last_size = 0
+    projects = Project.objects.all()
+    for year in range(start_year, end_year + 1):
+        q = 1
+        for month in quarters:
+            label = f'{year}-Q{q}'
+            for project in projects:
+                project_size=0
+                rf = ResearchFolder.objects.filter(project=project)
+                for f in rf:
+                    s=ResearchStats.objects.filter(research_folder=f, collected__year=year,
+                                        collected__month=month).order_by('collected').last()
+                    if s is not None:
+                        project_size = s.size + s.revision_size
+                if project_size > 0:
+                    if label not in stats:
+                        stats[label] = {
+                            'tier1': 0,
+                            'tier2': 0,
+                            'tier3': 0,
+                            'total': 0
+                        }
+                    stats[label]['total']+=project_size
+                    if project_size > cutoff2:
+                        #stats[label]['tier2'] += project_size
+                        stats[label]['tier1'] += cutoff1
+                        stats[label]['tier2'] += cutoff2 - cutoff1
+                        stats[label]['tier3'] += project_size - cutoff2
+                    elif project_size > cutoff1:
+                        stats[label]['tier1'] += cutoff1
+                        stats[label]['tier3'] += project_size - cutoff1
+                    else:
+                        stats[label]['tier1'] += project_size
+            q += 1
+    return stats
+
+def paid_free_chart_json(request):
+    labels=[]
+    tier1=[]
+    tier2=[]
+    tier3=[]
+    stats = _quarterly_paid_free_stats()
+    for label in dict(sorted(stats.items())):
+        labels.append(label)
+        tier1.append(stats[label]['tier1']/divTB)
+        tier2.append(stats[label]['tier2']/divTB)
+        tier3.append(stats[label]['tier3']/divTB)
+
+        # as percentage:
+        #tier1.append(stats[label]['tier1']/stats[label]['total'])
+        #tier2.append(stats[label]['tier2']/stats[label]['total'])
+        #tier3.append(stats[label]['tier3']/stats[label]['total'])
+
+
+    datasets = [
+        {
+            'label': 'Free (<500GB)',
+            'backgroundColor': 'rgba(127,201,127, 0.4)',
+            'borderColor': 'rgba(127,201,127)',
+            'borderWidth': 1,
+            'data': tier1,
+        },
+        {
+            'label': 'tier 1 (500GB-2TB)',
+            'backgroundColor': 'rgba(253,192,134, 0.4)',
+            'borderColor': 'rgba(253,192,134)',
+            'borderWidth': 1,
+            'data': tier2,
+        },
+        {
+            'label': 'tier2 (>2TB)',
+            'backgroundColor': 'rgba(190,174,212,  0.4)',
+            'borderColor': 'rgba(190,174,212)',
+            'borderWidth': 1,
+            'data': tier3,
+        },
+    ]
+    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+    pass
