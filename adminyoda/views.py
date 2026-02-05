@@ -25,7 +25,7 @@ COLORSET = ['rgba(141,211,199)', 'rgba(255,255,179)', 'rgba(190,186,218)', 'rgba
 
 def _convert_bytes(num):
     """
-    this function will convert bytes to MB.... GB... etc
+    this function will convert bytes to MB.... GB... etc 
     """
     for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
         if num < 1024.0:
@@ -394,7 +394,6 @@ def storage_chart_json(request):
 def _faculty_colors(data):
     colorlist={}
     i = 0
-    logger.debug(data)
     for faculty in dict(sorted(data.items())):
         colorlist[faculty]=COLORSET[i]
         i+=1
@@ -500,8 +499,8 @@ def _quarterly_paid_free_stats(cutoff1=500*GB, cutoff2=2*divTB):
                 project_size=0
                 rf = ResearchFolder.objects.filter(project=project)
                 for f in rf:
-                    s=ResearchStats.objects.filter(research_folder=f, collected__year=year,
-                                        collected__month=month).order_by('collected').last()
+                    s=ResearchStats.objects.filter(research_folder=f, collected__year=year, collected__month__lte=month,
+                                         collected__month__gt=month - 3).order_by('collected').last()
                     if s is not None:
                         project_size = s.size + s.revision_size
                 if project_size > 0:
