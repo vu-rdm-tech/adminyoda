@@ -36,4 +36,5 @@ urlpatterns = [
     path('faculty_chart_json', views.faculty_chart_json, name='faculty_chart_json'),
     path('faculty_size_chart_json', views.faculty_size_chart_json, name='faculty_size_chart_json'),
     path('rights_chart_json', views.rights_chart_json, name='rights_chart_json'),
+    path('paid_free_chart_json', views.paid_free_chart_json, name='paid_free_chart_json'),
 ]

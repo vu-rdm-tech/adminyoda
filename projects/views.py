@@ -253,18 +253,20 @@ def _quarterly_vault_stats(folder):
     return stats
 
 
-def project_research_stats(project_id):
+def project_research_stats(project_id, quarterly=False):
     project = Project.objects.get(pk=project_id)
     rf = ResearchFolder.objects.filter(project=project)  # deleted folders should automatically disappear from the stats
     research_stats = {}
     vault_stats = {}
     labels = []
     for f in rf:
-        # rstats = _quarterly_research_stats(f)
-        rstats = _monthly_research_stats(f)
         vf = VaultFolder.objects.get(research_folder=f)
-        # vstats = _quarterly_vault_stats(vf)
-        vstats = _monthly_vault_stats(vf)
+        if quarterly:
+            rstats = _quarterly_research_stats(f)
+            vstats = _quarterly_vault_stats(vf) 
+        else:
+            rstats = _monthly_research_stats(f)
+            vstats = _monthly_vault_stats(vf)
         i = 0
         # Now merge these on label
         for rstat in rstats:
