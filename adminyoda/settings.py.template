@@ -139,7 +139,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 Q_CLUSTER = {
     "name": "yodastats",
     "orm": "default",  # Use Django's ORM + database for broker
-    'timeout': 60,
+    'timeout': 180,
     'retry': 1000,
     'max_attempts': 2,
     'ack_failures': True
