@@ -2,10 +2,10 @@
 
 {% block content %}
     <h1>Storage breakdown</h1>
-    <canvas id="storage-chart" data-url="{% url 'storage_chart_json' %}"></canvas>
+    <canvas id="storage-chart" data-url="{% url 'storage_chart_json' %}">Loading...</canvas>
     
     <h1>Paid vs Free storage</h1>
-    <canvas id="paid-free-chart" data-url="{% url 'paid_free_chart_json' %}"></canvas>
+    <canvas id="paid-free-chart" data-url="{% url 'paid_free_chart_json' %}">Loading...</canvas>
     
     <script>
         $(function () {
