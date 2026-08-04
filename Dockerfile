@@ -17,7 +17,9 @@ RUN apt-get update && \
 
 
 
-RUN useradd -m -u 1000 appuser
+RUN useradd -m -u 1000 appuser && \
+    mkdir -p /home/appuser/.gunicorn && \
+    chown -R appuser:appuser /home/appuser
 ENV HOME=/home/appuser
 USER appuser
 COPY . .
