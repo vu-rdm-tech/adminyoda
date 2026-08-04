@@ -11,6 +11,9 @@ RUN apt-get update && \
     pip install --upgrade pip && \
     pip install -r requirements.txt
 
+RUN useradd -m -u 1000 appuser
+ENV HOME=/home/appuser
+USER appuser
 COPY . .
 
 RUN chmod +x entrypoint.sh && chmod 777 -R /usr/src/app/static
@@ -19,7 +22,4 @@ ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
 
 EXPOSE 8000
 
-RUN useradd -m -u 1000 appuser
-ENV HOME=/home/appuser
-USER appuser
 CMD ["sh", "-c", "python manage.py runserver 0.0.0.0:8000"]
