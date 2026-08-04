@@ -1,4 +1,7 @@
 FROM python:3.11
+RUN useradd -m -u 1000 appuser
+ENV HOME=/home/appuser
+USER appuser
 
 WORKDIR /usr/src/app
 
