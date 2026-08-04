@@ -3,20 +3,24 @@ FROM python:3.11
 WORKDIR /usr/src/app
 
 COPY requirements.txt ./
+COPY entrypoint.sh ./
+COPY static/ ./static/
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends postgresql-client && \
     apt-get install -y netcat-traditional && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install -r requirements.txt && \
+    chmod +x entrypoint.sh && \
+    chmod 777 -R /usr/src/app/static
+
+
 
 RUN useradd -m -u 1000 appuser
 ENV HOME=/home/appuser
 USER appuser
 COPY . .
-
-RUN chmod +x entrypoint.sh && chmod 777 -R /usr/src/app/static
 
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
 
