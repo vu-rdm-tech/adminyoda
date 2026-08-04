@@ -15,14 +15,14 @@ RUN apt-get update && \
     chmod +x entrypoint.sh && \
     chmod 777 -R /usr/src/app/static
 
-
+COPY . .
 
 RUN useradd -m -u 1000 appuser && \
     mkdir -p /home/appuser/.gunicorn && \
-    chown -R appuser:appuser /home/appuser
+    chown -R appuser:appuser /home/appuser && \
+    chown -R appuser:appuser /usr/src/app
 ENV HOME=/home/appuser
 USER appuser
-COPY . .
 
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
 
