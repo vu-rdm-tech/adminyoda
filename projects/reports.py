@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 GB = 1024 * 1024 * 1024
 today = datetime.now()
+REPORTS_DIR = os.environ.get("REPORTS_DIR", "/tmp")
 
 
 def _monthly_research_stats(
@@ -368,8 +369,28 @@ def get_billable_data(year, usage):
     return bill_data
 
 
+def billing_report_path(year):
+    return os.path.join(REPORTS_DIR, f"yearly_cost_report_{year}.xlsx")
+
+
+def billing_report_needed(year):
+    """Whether the billing report for a given year needs to be (re)generated: it's
+    missing, or (for the current year, which is still accumulating usage data) the
+    database was updated after the report was last generated. Past years are
+    immutable once generated.
+    """
+    filename = billing_report_path(year)
+    if not os.path.exists(filename):
+        return True
+    if year < datetime.now().year:
+        return False
+    report_generated = datetime.fromtimestamp(os.path.getmtime(filename)).date()
+    latest_collected = MiscStats.objects.latest("collected").collected
+    return latest_collected > report_generated
+
+
 def generate_yearly_report(year, include_revisions=True):
-    """If not already present, generate a yearly report for the given year in xlsx and json format
+    """Generate a yearly billing report for the given year in xlsx and json format
 
     Arguments:
         year -- _description_
@@ -377,10 +398,7 @@ def generate_yearly_report(year, include_revisions=True):
     Returns:
         filename {string} -- filename of the report in xlsx format
     """
-    if year == today.year:
-        filename = f'/tmp/yearly_cost_report_{year}{today.strftime("%U")}.xlsx'
-    else:
-        filename = f"/tmp/yearly_cost_report_{year}.xlsx"
+    filename = billing_report_path(year)
 
     usage_data = get_usage_data(
         start_year=year, end_year=year, include_revisions=include_revisions
@@ -503,7 +521,6 @@ def general_stats(start_year, end_year, include_revisions=True):
     return stats
 
 
-REPORTS_DIR = os.environ.get("REPORTS_DIR", "/tmp")
 STATISTICS_REPORT_PATH = os.path.join(REPORTS_DIR, "yearly_statistics_report.xlsx")
 
 

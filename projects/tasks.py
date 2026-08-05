@@ -19,7 +19,12 @@ from projects.models import (
 )
 from django.utils.timezone import now, make_aware
 from django.db.models.base import ObjectDoesNotExist
-from projects.reports import generate_statistics_report, statistics_report_needed
+from projects.reports import (
+    generate_statistics_report,
+    statistics_report_needed,
+    generate_yearly_report,
+    billing_report_needed,
+)
 
 DATADIR = os.environ.get("DATADIR")
 SRAMDATADIR = os.environ.get("SRAMDATADIR")
@@ -118,6 +123,16 @@ def generate_statistics_report_task(include_revisions=True):
         generate_statistics_report(include_revisions=include_revisions)
     else:
         logger.info("Statistics report is up to date, skipping generation.")
+
+def generate_billing_reports_task(include_revisions=True):
+    # scheduled via django_q; the download view only serves the pregenerated files.
+    # covers the current and previous year, matching the two links on the index page.
+    for year in (datetime.now().year, datetime.now().year - 1):
+        if billing_report_needed(year):
+            logger.info(f"Generating new billing report for {year}.")
+            generate_yearly_report(year, include_revisions=include_revisions)
+        else:
+            logger.info(f"Billing report for {year} is up to date, skipping generation.")
 
 def process_sram_stats():
     files = sorted(os.listdir(SRAMDATADIR))

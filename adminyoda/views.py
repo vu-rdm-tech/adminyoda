@@ -6,7 +6,7 @@ from projects.models import Project, MiscStats, VaultFolder, VaultDataset, Resea
 from datetime import datetime, timedelta
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
-from projects.reports import generate_yearly_report, STATISTICS_REPORT_PATH
+from projects.reports import billing_report_path, STATISTICS_REPORT_PATH
 from projects.views import project_research_stats
 import mimetypes
 import os
@@ -76,8 +76,9 @@ def stale_groups(days, collected):
 
 @login_required(login_url='/admin/login/')
 def download_billing_report(request, year: int):
-    # fill these variables with real values
-    fl_path = generate_yearly_report(int(year), include_revisions=True)
+    fl_path = billing_report_path(int(year))
+    if not os.path.exists(fl_path):
+        return HttpResponse("Billing report has not been generated yet, please try again later.", status=503)
     if int(year) == today.year:
         month = today.month
     else:
