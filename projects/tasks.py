@@ -19,6 +19,7 @@ from projects.models import (
 )
 from django.utils.timezone import now, make_aware
 from django.db.models.base import ObjectDoesNotExist
+from projects.reports import generate_statistics_report, statistics_report_needed
 
 DATADIR = os.environ.get("DATADIR")
 SRAMDATADIR = os.environ.get("SRAMDATADIR")
@@ -109,6 +110,14 @@ def clean_folders():
 def cleanup():
     clean_folders()
     clean_projects()
+
+def generate_statistics_report_task(include_revisions=True):
+    # scheduled via django_q; the download view only serves the pregenerated file
+    if statistics_report_needed():
+        logger.info("Generating new statistics report.")
+        generate_statistics_report(include_revisions=include_revisions)
+    else:
+        logger.info("Statistics report is up to date, skipping generation.")
 
 def process_sram_stats():
     files = sorted(os.listdir(SRAMDATADIR))

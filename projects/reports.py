@@ -495,8 +495,24 @@ def general_stats(start_year, end_year, include_revisions=True):
     return stats
 
 
+STATISTICS_REPORT_PATH = "/tmp/yearly_statistics_report.xlsx"
+
+
+def statistics_report_needed():
+    """Whether the statistics report needs to be (re)generated: it's missing, or the
+    database was updated (MiscStats collected) after the report was last generated.
+    """
+    if not os.path.exists(STATISTICS_REPORT_PATH):
+        return True
+    report_generated = datetime.fromtimestamp(
+        os.path.getmtime(STATISTICS_REPORT_PATH)
+    ).date()
+    latest_collected = MiscStats.objects.latest("collected").collected
+    return latest_collected > report_generated
+
+
 def generate_statistics_report(include_revisions=True):
-    filename = f'/tmp/yearly_statistics_report_{today.strftime("%U")}.xlsx'
+    filename = STATISTICS_REPORT_PATH
     writer = pd.ExcelWriter(filename, engine="xlsxwriter")
 
     dfg = pd.DataFrame.from_dict(data=general_stats(2022, today.year))

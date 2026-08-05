@@ -6,9 +6,10 @@ from projects.models import Project, MiscStats, VaultFolder, VaultDataset, Resea
 from datetime import datetime, timedelta
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
-from projects.reports import generate_yearly_report, generate_statistics_report
+from projects.reports import generate_yearly_report, STATISTICS_REPORT_PATH
 from projects.views import project_research_stats
 import mimetypes
+import os
 import logging
 
 logger = logging.getLogger(__name__)
@@ -90,14 +91,16 @@ def download_billing_report(request, year: int):
     return response
 
 def download_statistics_report(request):
-    fl_path = generate_statistics_report(include_revisions=True)
+    fl_path = STATISTICS_REPORT_PATH
+    if not os.path.exists(fl_path):
+        return HttpResponse("Statistics report has not been generated yet, please try again later.", status=503)
     filename = f'yoda_statistics_report_{today.year}-{today.month}-{today.day}.xlsx'
 
     fl = open(fl_path, 'rb')
     mime_type, _ = mimetypes.guess_type(fl_path)
     response = HttpResponse(fl, content_type=mime_type)
     response['Content-Disposition'] = "attachment; filename=%s" % filename
-    return response        
+    return response
 
 def _quarterly_miscstats():
     quarters = [3, 6, 9, 12]
