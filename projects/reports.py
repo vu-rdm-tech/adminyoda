@@ -179,6 +179,8 @@ def get_usage_data(start_year, end_year, include_revisions=True):
         datasets = {}
         research_yearly = {}
         datasets_yearly = {}
+        internal_users = 0
+        external_users = 0
         for f in rf:
             print(f"{project.title} - {f.yoda_name}")
             research = _monthly_research_stats(
@@ -203,6 +205,8 @@ def get_usage_data(start_year, end_year, include_revisions=True):
                 end_year,
                 include_revisions=include_revisions,
             )
+            internal_users += f.internal_users
+            external_users += f.external_users
         usage_data[project.id] = {
             "project": f"{project.department.faculty} {project.department.abbreviation} {project.title}",
             "title": project.title,
@@ -223,6 +227,8 @@ def get_usage_data(start_year, end_year, include_revisions=True):
             "research_yearly": research_yearly,
             "datasets": datasets,
             "datasets_yearly": datasets_yearly,
+            "internal_users": internal_users,
+            "external_users": external_users,
         }
     return usage_data
 
@@ -445,6 +451,8 @@ def yearly_statistics_formatted(year, data):
                 report_usage_data[row]["num_published"] = data[project][
                     "datasets_yearly"
                 ][year]["num_published"]
+                report_usage_data[row]["internal_users"] = data[project]["internal_users"]
+                report_usage_data[row]["external_users"] = data[project]["external_users"]
                 row += 1
     return report_usage_data
 
