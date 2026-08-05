@@ -19,11 +19,13 @@ services:
       DB_NAME: ${DB_NAME}
       SITE_NAME: 127.0.0.1
       SECRET: ${SECRET}
+      REPORTS_DIR: /usr/app/reports
     ports:
       - "8000:8000"
     volumes:
       - .:/usr/src/app
       - /docker/adminyoda/log:/usr/app/log
+      - /docker/adminyoda/reports:/usr/app/reports
 
   adminyoda-task:
     container_name: adminyoda-task
@@ -44,10 +46,12 @@ services:
       SRAMDATADIR: /sramdata
       SITE_NAME: adminyoda.labs.vu.nl
       SECRET: ${SECRET}
+      REPORTS_DIR: /usr/app/reports
     command: python manage.py qcluster
     volumes:
       - .:/usr/src/app
       - /docker/adminyoda/log:/usr/app/log
+      - /docker/adminyoda/reports:/usr/app/reports
       - ${DATASRC}:/data:rw
       - ${SRAMDATASRC}:/sramdata:rw
 

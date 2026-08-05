@@ -19,9 +19,11 @@ services:
       DB_NAME: ${DB_NAME}
       SITE_NAME: adminyoda.labs.vu.nl
       SECRET: ${SECRET}
+      REPORTS_DIR: /usr/app/reports
     command: gunicorn adminyoda.wsgi:application --bind 0.0.0.0:8000 --timeout 300
     volumes:
       - ${DOCKER_DATA}/adminyoda/log:/usr/app/log
+      - ${DOCKER_DATA}/adminyoda/reports:/usr/app/reports
       - static:/usr/app/static
 
   adminyoda-task:
@@ -43,9 +45,11 @@ services:
       DATADIR: /data
       SITE_NAME: adminyoda.labs.vu.nl
       SECRET: ${SECRET}
+      REPORTS_DIR: /usr/app/reports
     command: python manage.py qcluster
     volumes:
       - ${DOCKER_DATA}/adminyoda/log:/usr/app/log
+      - ${DOCKER_DATA}/adminyoda/reports:/usr/app/reports
       - ${DATASRC}:/data:rw
 
   adminyoda-db:

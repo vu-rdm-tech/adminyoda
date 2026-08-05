@@ -495,7 +495,8 @@ def general_stats(start_year, end_year, include_revisions=True):
     return stats
 
 
-STATISTICS_REPORT_PATH = "/tmp/yearly_statistics_report.xlsx"
+REPORTS_DIR = os.environ.get("REPORTS_DIR", "/tmp")
+STATISTICS_REPORT_PATH = os.path.join(REPORTS_DIR, "yearly_statistics_report.xlsx")
 
 
 def statistics_report_needed():
