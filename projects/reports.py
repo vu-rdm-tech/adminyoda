@@ -187,18 +187,23 @@ def get_usage_data(start_year, end_year, include_revisions=True):
             research = _monthly_research_stats(
                 f, research, start_year, end_year, include_revisions=include_revisions
             )
-            datasets = _vault_datasets_by_month(
-                VaultFolder.objects.get(research_folder=f),
-                datasets,
-                start_year,
-                end_year,
-            )
-            datasets_yearly = _yearly_vault_stats(
-                VaultFolder.objects.get(research_folder=f),
-                datasets_yearly,
-                start_year,
-                end_year,
-            )
+            try:
+                vf = VaultFolder.objects.get(research_folder=f) 
+                datasets = _vault_datasets_by_month(
+                    vf,
+                    datasets,
+                    start_year,
+                    end_year,
+                )
+                datasets_yearly = _yearly_vault_stats(
+                    vf,
+                    datasets_yearly,
+                    start_year,
+                    end_year,
+                )
+            except VaultFolder.DoesNotExist:
+                datasets = None
+                datasets_yearly = None
             research_yearly = _yearly_research_stats(
                 f,
                 research_yearly,
