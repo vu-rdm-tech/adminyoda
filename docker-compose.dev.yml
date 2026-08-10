@@ -57,7 +57,7 @@ services:
 
   adminyoda-db:
     container_name: ${DB_HOST}
-    image: postgres:14
+    image: postgres:18
     environment:
       POSTGRES_PASSWORD: ${DB_PW}
       POSTGRES_USER: ${DB_USER}
