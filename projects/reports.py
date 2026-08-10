@@ -202,8 +202,8 @@ def get_usage_data(start_year, end_year, include_revisions=True):
                     end_year,
                 )
             except VaultFolder.DoesNotExist:
-                datasets = None
-                datasets_yearly = None
+                datasets = {}
+                datasets_yearly = {}
             research_yearly = _yearly_research_stats(
                 f,
                 research_yearly,
