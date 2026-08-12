@@ -1,19 +1,11 @@
 from django.http import Http404, JsonResponse
-from django.shortcuts import render
 from .models import Project, MiscStats, VaultDataset, ResearchFolder, Department, VaultFolder, VaultStats, \
-    ResearchStats, Person, Datamanager
-from datetime import datetime
+    ResearchStats, Person, Datamanager, ChartCache
+from django.shortcuts import render
 from .tables import ProjectTable, ProjectFilter
 from django_tables2 import RequestConfig
 
 GB = 1024 * 1024 * 1024
-start_year = 2021
-today = datetime.now()
-end_month = today.month
-end_year = today.year
-COLORSET = ['rgba(141,211,199)', 'rgba(255,255,179)', 'rgba(190,186,218)', 'rgba(251,128,114)', 'rgba(128,177,211)',
-            'rgba(253,180,98)', 'rgba(179,222,105)', 'rgba(252,205,229)', 'rgba(217,217,217)', 'rgba(188,128,189)',
-            'rgba(204,235,197)', 'rgba(255,237,111)']
 
 
 class CustomObject():
@@ -79,13 +71,16 @@ def _get_rf_table(p, d):
         if f.deleted is None:
             stat = ResearchStats.objects.filter(research_folder=f).latest('collected')
             size = size + stat.size + stat.revision_size
-        vf = VaultFolder.objects.get(research_folder=f)
-        if vf.deleted is None:
-            size = size + VaultStats.objects.filter(vault_folder=vf).latest('collected').size
-            cnt = VaultDataset.objects.filter(vault_folder=vf, deleted__isnull=True).count()
-            pubcnt = VaultDataset.objects.filter(status='PUBLISHED', vault_folder=vf, deleted__isnull=True).count()
-            d['num_dataset'] = d['num_dataset'] + cnt
-            d['num_published'] = d['num_published'] + pubcnt
+        try:
+            vf = VaultFolder.objects.get(research_folder=f)
+            if vf.deleted is None:
+                size = size + VaultStats.objects.filter(vault_folder=vf).latest('collected').size
+                cnt = VaultDataset.objects.filter(vault_folder=vf, deleted__isnull=True).count()
+                pubcnt = VaultDataset.objects.filter(status='PUBLISHED', vault_folder=vf, deleted__isnull=True).count()
+                d['num_dataset'] = d['num_dataset'] + cnt
+                d['num_published'] = d['num_published'] + pubcnt
+        except:
+            pass
     d['size_warning'] = False
     if p is not None:
         if size > (p.storage_limit * GB):
@@ -162,318 +157,30 @@ def project_detail(request, project_id):
     return render(request, 'projects/details.html', context={'data': data})
 
 
-def _vaultstats_quarterly(vault_folder, year, month):
-    return VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year,
-                                     collected__month__lte=month, collected__month__gt=month - 3).order_by(
-        'collected').last()
-
-
-def _researchstats_quarterly(research_folder, year, month):
-    return ResearchStats.objects.filter(research_folder=research_folder, collected__year=year,
-                                        collected__month__lte=month, collected__month__gt=month - 3).order_by(
-        'collected').last()
-
-
-def _vaultstats_month(vault_folder, year, month):
-    return VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year,
-                                     collected__month=month).order_by('collected').last()
-
-
-def _researchstats_month(research_folder, year, month):
-    return ResearchStats.objects.filter(research_folder=research_folder, collected__year=year,
-                                        collected__month=month).order_by('collected').last()
-
-
-def _monthly_research_stats(folder):
-    stats = []
-    last_size = 0
-    last_revision_size = 0
-    for year in range(start_year, end_year + 1):
-        for month in range(1, 13):
-            s = _researchstats_month(folder, year, month)
-            if s is not None:
-                s.label = f'{year}-{str(month).rjust(2, "0")}'
-                s.delta = s.size - last_size
-                s.revision_delta = s.revision_size - last_revision_size
-                last_size = s.size
-                last_revision_size = s.revision_size
-                s.total_size = s.size + s.revision_size
-                stats.append(s)
-    return stats
-
-
-def _monthly_vault_stats(folder):
-    stats = []
-    last_size = 0
-    for year in range(start_year, end_year + 1):
-        for month in range(1, 13):
-            s = _vaultstats_month(folder, year, month)
-            if s is not None:
-                s.label = f'{year}-{str(month).rjust(2, "0")}'
-                s.delta = s.size - last_size
-                last_size = s.size
-                stats.append(s)
-    return stats
-
-
-def _quarterly_research_stats(folder):
-    quarters = [3, 6, 9, 12]
-    stats = []
-    last_size = 0
-    last_revision_size = 0
-    for year in range(start_year, end_year + 1):
-        q = 1
-        for month in quarters:
-            s = _researchstats_quarterly(folder, year, month)
-            if s is not None:
-                s.label = f'{year}-Q{q}'
-                s.delta = s.size - last_size
-                s.revision_delta = s.revision_size - last_revision_size
-                last_size = s.size
-                last_revision_size = s.revision_size
-                stats.append(s)
-            q += 1
-    return stats
-
-
-def _quarterly_vault_stats(folder):
-    quarters = [3, 6, 9, 12]
-    stats = []
-    last_size = 0
-    for year in range(start_year, end_year + 1):
-        q = 1
-        for month in quarters:
-            s = _vaultstats_quarterly(folder, year, month)
-            if s is not None:
-                s.label = f'{year}-Q{q}'
-                s.delta = s.size - last_size
-                last_size = s.size
-                stats.append(s)
-            q += 1
-    return stats
-
-
-def project_research_stats(project_id, quarterly=False):
-    project = Project.objects.get(pk=project_id)
-    rf = ResearchFolder.objects.filter(project=project)  # deleted folders should automatically disappear from the stats
-    research_stats = {}
-    vault_stats = {}
-    labels = []
-    for f in rf:
-        vf = VaultFolder.objects.get(research_folder=f)
-        if quarterly:
-            rstats = _quarterly_research_stats(f)
-            vstats = _quarterly_vault_stats(vf) 
-        else:
-            rstats = _monthly_research_stats(f)
-            vstats = _monthly_vault_stats(vf)
-        i = 0
-        # Now merge these on label
-        for rstat in rstats:
-            label = rstat.label
-            if label not in labels:
-                labels.append(label)
-            if label not in research_stats:
-                research_stats[label] = {}
-                research_stats[label]['size'] = 0
-                research_stats[label]['delta'] = 0
-                research_stats[label]['revision_size'] = 0
-                research_stats[label]['revision_delta'] = 0
-                research_stats[label]['total_size'] = 0
-            research_stats[label]['total_size'] += rstat.total_size
-            research_stats[label]['size'] += rstat.size
-            research_stats[label]['delta'] += rstat.delta
-            research_stats[label]['revision_size'] += rstat.revision_size
-            research_stats[label]['revision_delta'] += rstat.revision_delta
-        for vstat in vstats:
-            label = vstat.label
-            if label not in labels:
-                labels.append(label)
-            if label not in vault_stats:
-                vault_stats[label] = {}
-                vault_stats[label]['size'] = 0
-                vault_stats[label]['delta'] = 0
-            vault_stats[label]['size'] += vstat.size
-            vault_stats[label]['delta'] += vstat.delta
-    return sorted(labels), research_stats, vault_stats
-
+# All project_*_chart_json views below just serve the payloads precomputed by
+# projects.tasks.generate_chart_cache_task for each active project (see
+# projects/chart_data.py for how each is built, ported from the functions that used to
+# live here). They used to recompute their data from scratch on every request.
 
 def project_size_chart_json(request, project_id):
-    research = []
-    revision = []
-    vault = []
-    div = (1024 * 1024 * 1024)
-    labels, research_stats, vault_stats = project_research_stats(project_id)
-    i = 0
-    for label in labels:
-        research.append(round(research_stats[label]['size'] / div, 2))
-        revision.append(round(research_stats[label]['revision_size'] / div, 2))
-        vault.append(round(vault_stats[label]['size'] / div, 2))
-        i += 1
-    datasets = [
-        {
-            'label': 'Research',
-            'backgroundColor': 'rgba(253,192,134, 0.4)',
-            'borderColor': 'rgba(253,192,134)',
-            'borderWidth': 1,
-            'data': research,
-        },
-        {
-            'label': 'Revisions',
-            'backgroundColor': 'rgba(190,174,212, 0.4)',
-            'borderColor': 'rgba(190,174,212)',
-            'borderWidth': 1,
-            'data': revision,
-        },
-        {
-            'label': 'Vault',
-            'backgroundColor': 'rgba(127,201,127, 0.4)',
-            'borderColor': 'rgba(127,201,127)',
-            'borderWidth': 1,
-            'data': vault,
-        },
-    ]
-    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+    return JsonResponse(data=ChartCache.get_data(f'project_size:{project_id}'))
 
 
 def project_research_size_chart_json(request, project_id):
-    research = []
-    div = (1024 * 1024 * 1024)
-    labels, research_stats, vault_stats = project_research_stats(project_id)
-    i = 0
-    for label in labels:
-        research.append(round((research_stats[label]['size'] + research_stats[label]['revision_size']) / div, 2))
-
-        i += 1
-    datasets = [
-        {
-            'label': 'Research',
-            'backgroundColor': 'rgba(237, 154, 200, 0.4)',
-            'borderColor': 'rgba(237, 154, 200)',
-            'borderWidth': 1,
-            'data': research,
-        },
-    ]
-    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+    return JsonResponse(data=ChartCache.get_data(f'project_research_size:{project_id}'))
 
 
 def project_research_revision_size_chart_json(request, project_id):
-    research = []
-    revision = []
-    div = (1024 * 1024 * 1024)
-    labels, research_stats, vault_stats = project_research_stats(project_id)
-    i = 0
-    for label in labels:
-        research.append(round(research_stats[label]['size'] / div, 2))
-        revision.append(round(research_stats[label]['revision_size'] / div, 2))
-        i += 1
-    datasets = [
-        {
-            'label': 'Research',
-            'backgroundColor': 'rgba(237, 154, 200, 0.4)',
-            'borderColor': 'rgba(237, 154, 200)',
-            'borderWidth': 1,
-            'data': research,
-        },
-        {
-            'label': 'Revisions',
-            'backgroundColor': 'rgba(190,174,212, 0.4)',
-            'borderColor': 'rgba(190,174,212)',
-            'borderWidth': 1,
-            'data': revision,
-        },
-    ]
-    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+    return JsonResponse(data=ChartCache.get_data(f'project_research_revision_size:{project_id}'))
 
 
 def project_vault_size_chart_json(request, project_id):
-    vault = []
-    div = (1024 * 1024 * 1024)
-    labels, research_stats, vault_stats = project_research_stats(project_id)
-    i = 0
-    for label in labels:
-        if label in vault_stats:
-            vault.append(round(vault_stats[label]['size'] / div, 2))
-        else:
-            vault.append(0)
-        i += 1
-    datasets = [
-        {
-            'label': 'Vault',
-            'backgroundColor': 'rgb(217, 248, 154, 0.4)',
-            'borderColor': 'rgb(217, 248, 154)',
-            'borderWidth': 1,
-            'data': vault,
-        },
-    ]
-    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+    return JsonResponse(data=ChartCache.get_data(f'project_vault_size:{project_id}'))
 
 
 def project_delta_chart_json(request, project_id):
-    research = []
-    vault = []
-    div = (1024 * 1024 * 1024)
-    labels, research_stats, vault_stats = project_research_stats(project_id)
-    i = 0
-    for label in labels:
-        research.append(round((research_stats[label]['delta'] + research_stats[label]['revision_delta']) / div, 2))
-        if label in vault_stats:
-            vault.append(round(vault_stats[label]['delta'] / div, 2))
-        else:
-            vault.append(0)
-        i += 1
-    datasets = [
-        {
-            'label': 'Research',
-            'backgroundColor': 'rgba(237, 154, 200, 0.4)',
-            'borderColor': 'rgba(237, 154, 200)',
-            'borderWidth': 1,
-            'data': research,
-        },
-        {
-            'label': 'Vault',
-            'backgroundColor': 'rgb(217, 248, 154, 0.4)',
-            'borderColor': 'rgb(217, 248, 154)',
-            'borderWidth': 1,
-            'data': vault,
-        },
-    ]
-    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+    return JsonResponse(data=ChartCache.get_data(f'project_delta:{project_id}'))
 
 
 def project_delta_with_revision_chart_json(request, project_id):
-    research = []
-    revision = []
-    vault = []
-    div = (1024 * 1024 * 1024)
-    labels, research_stats, vault_stats = project_research_stats(project_id)
-    i = 0
-    for label in labels:
-        research.append(round(research_stats[label]['delta'] / div, 2))
-        revision.append(round(research_stats[label]['revision_delta'] / div, 2))
-        vault.append(round(vault_stats[label]['delta'] / div, 2))
-        i += 1
-    datasets = [
-        {
-            'label': 'Research',
-            'backgroundColor': 'rgba(237, 154, 200, 0.4)',
-            'borderColor': 'rgba(237, 154, 200)',
-            'borderWidth': 1,
-            'data': research,
-        },
-        {
-            'label': 'Revisions',
-            'backgroundColor': 'rgba(190,174,212, 0.4)',
-            'borderColor': 'rgba(190,174,212)',
-            'borderWidth': 1,
-            'data': revision,
-        },
-        {
-            'label': 'Vault',
-            'backgroundColor': 'rgba(127,201,127, 0.4)',
-            'borderColor': 'rgba(127,201,127)',
-            'borderWidth': 1,
-            'data': vault,
-        },
-    ]
-    return JsonResponse(data={'labels': labels, 'datasets': datasets})
+    return JsonResponse(data=ChartCache.get_data(f'project_delta_with_revision:{project_id}'))
