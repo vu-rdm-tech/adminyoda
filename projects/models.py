@@ -139,12 +139,22 @@ class ResearchStats(models.Model):
     collected = models.DateField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['collected', 'research_folder']),
+        ]
+
 
 class VaultStats(models.Model):
     vault_folder = models.ForeignKey(VaultFolder, on_delete=models.CASCADE)
     size = models.BigIntegerField()
     collected = models.DateField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['collected', 'vault_folder']),
+        ]
 
 class MiscStats(models.Model):
     size_total = models.BigIntegerField()
@@ -161,3 +171,26 @@ class MiscStats(models.Model):
     trash_size = models.BigIntegerField(default=0)
     collected = models.DateField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['collected']),
+        ]
+
+
+class ChartCache(models.Model):
+    """Precomputed *_chart_json payloads, refreshed by tasks.generate_chart_cache_task.
+    Per-project charts are keyed as f"{name}:{project_id}"."""
+    name = models.CharField(max_length=100, unique=True)
+    data = models.JSONField()
+    generated_at = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def get_data(cls, name):
+        try:
+            return cls.objects.get(name=name).data
+        except cls.DoesNotExist:
+            return {'labels': [], 'datasets': []}
+
+    def __str__(self):
+        return self.name

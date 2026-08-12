@@ -16,8 +16,10 @@ from projects.models import (
     Project,
     Department,
     Budget,
+    ChartCache,
 )
 from django.utils.timezone import now, make_aware
+from django.db import transaction
 from django.db.models.base import ObjectDoesNotExist
 from projects.reports import (
     generate_statistics_report,
@@ -25,6 +27,7 @@ from projects.reports import (
     generate_yearly_report,
     billing_report_needed,
 )
+from projects.chart_data import CHART_BUILDERS, PROJECT_CHART_FORMATTERS, project_research_stats
 
 DATADIR = os.environ.get("DATADIR")
 SRAMDATADIR = os.environ.get("SRAMDATADIR")
@@ -133,6 +136,61 @@ def generate_billing_reports_task(include_revisions=True):
             generate_yearly_report(year, include_revisions=include_revisions)
         else:
             logger.info(f"Billing report for {year} is up to date, skipping generation.")
+
+CHART_CACHE_LAST_RUN = "_last_run"
+
+def chart_cache_needed():
+    """Whether the chart cache needs to be (re)generated: it's never completed a full
+    pass, or the database was updated (MiscStats collected) since the last pass.
+
+    Deliberately keyed off a dedicated CHART_CACHE_LAST_RUN marker rather than the
+    individual chart rows' generated_at: if some charts fail to build (see
+    _save_chart_cache), the successful ones would otherwise look "fresh" forever and
+    the failed ones would never get retried once new data arrives.
+    """
+    try:
+        latest_collected = MiscStats.objects.latest("collected").collected
+    except MiscStats.DoesNotExist:
+        return False
+    try:
+        last_run = ChartCache.objects.get(name=CHART_CACHE_LAST_RUN).generated_at
+    except ChartCache.DoesNotExist:
+        return True
+    return latest_collected > last_run.date()
+
+def _save_chart_cache(name, compute):
+    # Wrapped in its own atomic block: a failed builder (bad data for one chart/project)
+    # rolls back to its savepoint instead of poisoning the connection's transaction for
+    # every chart built afterwards.
+    try:
+        with transaction.atomic():
+            ChartCache.objects.update_or_create(name=name, defaults={"data": compute()})
+    except Exception:
+        logger.exception(f"Failed to build chart cache '{name}', leaving previous value in place.")
+
+def generate_chart_cache_task():
+    # scheduled via django_q; the *_chart_json views only serve the pregenerated cache.
+    # Each chart is built independently so one bad project/chart can't block the rest.
+    if not chart_cache_needed():
+        logger.info("Chart cache is up to date, skipping generation.")
+        return
+    logger.info("Regenerating chart cache.")
+    for name, builder in CHART_BUILDERS.items():
+        _save_chart_cache(name, builder)
+    for project in Project.objects.filter(delete_date__isnull=True):
+        # project_research_stats does the expensive per-folder/per-month querying; run it
+        # once per project and derive all of that project's charts from the same result,
+        # instead of every formatter re-running it independently.
+        try:
+            with transaction.atomic():
+                stats = project_research_stats(project.id)
+        except Exception:
+            logger.exception(f"Failed to compute research stats for project {project.id}, skipping its charts.")
+            continue
+        for name, formatter in PROJECT_CHART_FORMATTERS.items():
+            _save_chart_cache(f"{name}:{project.id}", lambda formatter=formatter: formatter(*stats))
+    ChartCache.objects.update_or_create(name=CHART_CACHE_LAST_RUN, defaults={"data": {}})
+    logger.info("Chart cache regenerated.")
 
 def process_sram_stats():
     files = sorted(os.listdir(SRAMDATADIR))
