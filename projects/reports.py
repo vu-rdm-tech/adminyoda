@@ -81,20 +81,21 @@ def _vault_datasets_by_month(vault_folder, data, start_year, end_year):
         for month in range(1, 13):
             if month not in data[year]:
                 data[year][month] = []
-            datasets = VaultDataset.objects.filter(
-                vault_folder=vault_folder,
-                created__year=year,
-                created__month=month,
-                deleted__isnull=True,
-            ).order_by("created")
-            for dataset in datasets:
-                data[year][month].append(
-                    {
-                        "size": dataset.size,
-                        "retention": dataset.retention,
-                        "name": dataset.yoda_name,
-                    }
-                )
+            if vault_folder is not None:
+                datasets = VaultDataset.objects.filter(
+                    vault_folder=vault_folder,
+                    created__year=year,
+                    created__month=month,
+                    deleted__isnull=True,
+                ).order_by("created")
+                for dataset in datasets:
+                    data[year][month].append(
+                        {
+                            "size": dataset.size,
+                            "retention": dataset.retention,
+                            "name": dataset.yoda_name,
+                        }
+                    )
     return data
 
 
@@ -105,23 +106,24 @@ def _yearly_vault_stats(vault_folder, data, start_year, end_year):
             data[year]["num_datasets"] = 0
             data[year]["num_published"] = 0
             data[year]["size"] = 0
-        data[year]["num_datasets"] += VaultDataset.objects.filter(
-            vault_folder=vault_folder,
-            created__year__lte=year,
-            deleted__isnull=True,
-        ).count()
-        data[year]["num_published"] += VaultDataset.objects.filter(
-            vault_folder=vault_folder,
-            created__year__lte=year,
-            status="PUBLISHED",
-            deleted__isnull=True,
-        ).count()
-        s = (
-            VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year)
-            .order_by("collected")
-            .last()
-        )
-        data[year]["size"] += s.size if s is not None else 0
+        if vault_folder is not None:
+            data[year]["num_datasets"] += VaultDataset.objects.filter(
+                vault_folder=vault_folder,
+                created__year__lte=year,
+                deleted__isnull=True,
+            ).count()
+            data[year]["num_published"] += VaultDataset.objects.filter(
+                vault_folder=vault_folder,
+                created__year__lte=year,
+                status="PUBLISHED",
+                deleted__isnull=True,
+            ).count()
+            s = (
+                VaultStats.objects.filter(vault_folder=vault_folder, collected__year=year)
+                .order_by("collected")
+                .last()
+            )
+            data[year]["size"] += s.size if s is not None else 0
     return data
 
 
@@ -189,21 +191,20 @@ def get_usage_data(start_year, end_year, include_revisions=True):
             )
             try:
                 vf = VaultFolder.objects.get(research_folder=f) 
-                datasets = _vault_datasets_by_month(
-                    vf,
-                    datasets,
-                    start_year,
-                    end_year,
-                )
-                datasets_yearly = _yearly_vault_stats(
-                    vf,
-                    datasets_yearly,
-                    start_year,
-                    end_year,
-                )
-            except VaultFolder.DoesNotExist:
-                datasets = {}
-                datasets_yearly = {}
+            except:
+                vf = None
+            datasets = _vault_datasets_by_month(
+                vf,
+                datasets,
+                start_year,
+                end_year,
+            )
+            datasets_yearly = _yearly_vault_stats(
+                vf,
+                datasets_yearly,
+                start_year,
+                end_year,
+            )
             research_yearly = _yearly_research_stats(
                 f,
                 research_yearly,
