@@ -192,6 +192,7 @@ def get_usage_data(start_year, end_year, include_revisions=True):
             try:
                 vf = VaultFolder.objects.get(research_folder=f) 
             except:
+                logger.warning(f"{project.title} - {f.yoda_name} has no VaultFolder!")
                 vf = None
             datasets = _vault_datasets_by_month(
                 vf,
