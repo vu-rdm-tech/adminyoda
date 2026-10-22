@@ -11,6 +11,7 @@ RUN apt-get update && \
     apt-get install -y netcat-traditional && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --upgrade pip && \
+    pip install --no-cache-dir setuptools && \
     pip install -r requirements.txt && \
     chmod +x entrypoint.sh && \
     chmod 777 -R /usr/src/app/static
